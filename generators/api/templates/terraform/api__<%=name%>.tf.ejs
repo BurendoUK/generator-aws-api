@@ -1,0 +1,20 @@
+resource "aws_api_gateway_rest_api" "<%=name%>" {
+    name = "${local.prefix}--<%=name%>"
+    description = "RESTful API"
+}
+
+resource "aws_api_gateway_deployment" "<%=name%>" {
+    rest_api_id = aws_api_gateway_rest_api.<%=name%>.id
+    depends_on = [
+    ]
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
+resource "aws_api_gateway_stage" "production" {
+    rest_api_id   = aws_api_gateway_rest_api.<%=name%>.id
+    deployment_id = aws_api_gateway_deployment.<%=name%>.id
+    stage_name    = "production"
+    description   = "Deploy to Live"
+}
