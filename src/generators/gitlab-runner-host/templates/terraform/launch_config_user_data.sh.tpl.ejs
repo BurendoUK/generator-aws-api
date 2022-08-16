@@ -1,0 +1,11 @@
+#!/bin/bash
+
+aws configure set default.region "eu-west-2"
+
+REGISTRATION_TOKEN=$(aws secretsmanager get-secret-value --secret-id ${secret_id} --query SecretString --output text)
+
+sudo sed -i -e '/concurrent =/ s/= .*/= 1/' /etc/gitlab-runner/config.toml
+
+sudo gitlab-runner register --non-interactive -u ${gitlab_url} --run-untagged=true --executor shell --tag-list "shell" --cache-type s3 --cache-shared=true --cache-s3-server-address "s3.amazonaws.com" --cache-s3-bucket-name "${cache_bucket_name}" --cache-s3-bucket-location "eu-west-2" --cache-s3-authentication_type "iam" --registration-token $REGISTRATION_TOKEN
+sudo gitlab-runner register --non-interactive -u ${gitlab_url} --run-untagged=false --executor docker --docker-image alpine:latest --tag-list "docker" --registration-token $REGISTRATION_TOKEN
+sudo gitlab-runner verify

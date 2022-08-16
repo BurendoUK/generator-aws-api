@@ -1,0 +1,7 @@
+#!/bin/bash
+
+function _build() {
+  pushd $root/packer
+  packer build template.json
+  popd
+}

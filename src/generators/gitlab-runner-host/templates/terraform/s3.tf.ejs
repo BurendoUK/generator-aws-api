@@ -1,0 +1,20 @@
+resource "aws_s3_bucket" "gitlab_runner" {
+  bucket = "${local.prefix}-gitlab-cache"
+
+  lifecycle_rule {
+    id      = "${local.prefix}-clear-old-cache-files"
+    enabled = true
+    expiration {
+      days = 7
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "gitlab_runner" {
+  bucket = aws_s3_bucket.gitlab_runner.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}

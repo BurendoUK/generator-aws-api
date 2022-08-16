@@ -1,0 +1,19 @@
+echo "Started running $(basename "$0")"
+
+terraform_version=0.14.8
+
+echo "> Installing terraform"
+
+sudo git clone https://github.com/tfutils/tfenv.git /opt/tfenv
+sudo ln -s /opt/tfenv/bin/* /usr/local/bin
+
+sudo tfenv install ${terraform_version}
+sudo tfenv use ${terraform_version}
+
+sudo chmod -R 777 /opt/tfenv/versions
+
+sudo runuser -l gitlab-runner -c 'tfenv install ${terraform_version}'
+
+# Got this far? Then we are good
+echo "Finished running $(basename "$0")"
+exit 0;

@@ -1,0 +1,83 @@
+{
+  "variables": {
+    "aws_region": "<%=region%>",
+    "aws_ami_name": "gitlab-runner-{{timestamp}}"
+  },
+
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "{{user `aws_region`}}",
+      "instance_type": "t3.micro",
+      "ssh_username": "ubuntu",
+      "ami_name": "{{user `aws_ami_name`}}",
+      "ami_description": "Gitlab Runner",
+      "associate_public_ip_address": "true",
+      "encrypt_boot": "true",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "*hvm-ssd/ubuntu-focal-20.04-amd64-server-*",
+          "root-device-type": "ebs"
+        },
+        "owners": ["099720109477"],
+        "most_recent": true
+      },
+      "launch_block_device_mappings": [
+        {
+          "device_name": "/dev/sda1",
+          "volume_size": 50,
+          "volume_type": "gp2",
+          "delete_on_termination": true
+        }
+      ],
+      "tags": {
+        "Role": "CI",
+        "Name": "Gitlab Runner"
+      }
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "files/docker-config.json",
+      "destination": "/tmp/docker-config.json"
+    },
+    {
+      "type": "file",
+      "source": "files/gitlab-runner.service.overrides",
+      "destination": "/tmp/gitlab-runner.service.overrides"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sleep 30",
+        "sudo apt-get update -y",
+        "sudo apt-get install -y ca-certificates curl gnupg lsb-release",
+        "sudo apt-get install -y jq",
+        "sudo apt-get install -y unzip",
+        "sudo apt-get install -y build-essential",
+        "sudo apt-get install -y amazon-ecr-credential-helper",
+        "sudo apt-get install --no-install-recommends -y openjdk-11-jdk",
+        "sudo apt-get install -y software-properties-common",
+        "sudo add-apt-repository -y ppa:deadsnakes/ppa"
+      ]
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/builder/install-python.sh",
+        "scripts/builder/install-aws-cli.sh",
+        "scripts/builder/install-pipenv.sh",
+        "scripts/builder/install-gitlab-runner.sh",
+        "scripts/builder/install-node.sh",
+        "scripts/builder/install-yarn.sh",
+        "scripts/builder/install-terraform.sh",
+        "scripts/builder/install-docker.sh",
+        "scripts/builder/setup-ecr-credential-helper.sh"
+      ],
+      "environment_vars": ["AWS_REGION={{user `aws_region`}}"]
+    }
+  ]
+}

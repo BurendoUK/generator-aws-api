@@ -1,0 +1,7 @@
+data "aws_dynamodb_table" "terraform_state_lock" {
+  name = "<%=lock_table%>"
+}
+
+data "aws_s3_bucket" "terraform_state" {
+  bucket = "<%=state_bucket%>"
+}

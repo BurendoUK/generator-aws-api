@@ -1,0 +1,29 @@
+#!/bin/bash
+
+export PIPENV_VENV_IN_PROJECT=1
+
+function _pipenv_help() {
+    echo
+    echo "<%=project%> pipenv <command>"
+    echo
+    echo "commands:"
+    echo "  help          - this help screen"
+    echo "  install       - runs 'pipenv install'"
+    echo
+}
+
+function _pipenv() {
+    command=$1
+    env=$2
+    args=(${@:3})
+
+    case $command in
+        "install")
+        pipenv install
+        ;;
+
+        *)
+        _pipenv_help
+        ;;
+    esac
+}

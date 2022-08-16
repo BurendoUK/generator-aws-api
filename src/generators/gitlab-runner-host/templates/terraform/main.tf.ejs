@@ -1,0 +1,21 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "3.73.0"
+    }
+  }
+  required_version = ">= 0.14"
+
+  backend "s3" {
+    bucket               = "<%=state_bucket%>"
+    dynamodb_table       = "<%=lock_table%>"
+    region               = "<%=region%>"
+    key                  = "state.tfstate"
+    workspace_key_prefix = "<%=project%>"
+  }
+}
+
+provider "aws" {
+  region = "<%=region%>"
+}

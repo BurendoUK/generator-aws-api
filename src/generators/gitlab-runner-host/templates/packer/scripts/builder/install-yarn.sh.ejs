@@ -1,0 +1,12 @@
+echo "Started running $(basename "$0")"
+
+echo "> Installing yarn"
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+sudo apt-get update -y
+sudo apt-get install yarn -y
+
+# Got this far? Then we are good
+echo "Finished running $(basename "$0")"
+exit 0;

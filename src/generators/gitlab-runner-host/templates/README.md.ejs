@@ -1,0 +1,137 @@
+# GitLab Runner AMI
+
+The folder contains the packer template and terraform needed to update gitlab runners.
+
+# Getting started
+
+We have a cli tool which automates many of our day to day dev / admin tasks. First load the script into your terminal session:
+
+```
+source <%=project%>.sh
+```
+
+Now you can use our cli. To get the help screen:
+
+```
+<%=project%>
+```
+
+## First time setup
+
+Install the packages that you will need:
+
+- pipenv
+- python 3.9
+- packer
+
+and also install python dependencies for our interface to the AWS CLI:
+
+```
+<%=project%> pipenv install
+```
+
+This should create a .venv folder in the root of the project.
+
+If you've not already done so then you'll need to set your default AWS credentials using your access tokens from the NHS Identities account:
+
+```
+aws configure
+```
+
+# Updating the Gitlab Runners
+
+Updating the Gitlab runners currently involves a mix of automated and manual steps.
+
+Just to note that although this doesn't cause any downtime it can lead to a significant bottleneck in the CI while instances are being swapped out, which should last for up to an hour
+depending on CI load.
+
+## Login to AWS (assuming a role)
+
+For this task you will need to assume the `<%=account_cli_alias%>` role. With great power comes great responsibility etc: please be responsible when in this role.
+
+```
+<%=project%> aws login <%=account_cli_alias%> [mfa-token]
+```
+
+## Update the Packer template
+
+Update `template.json` with any changes you need to implement in the Gitlab runners.
+
+## Updating the AMI
+
+After applying any updates to `template.json` run:
+
+```
+<%=project%> build
+```
+
+This can take up to 15 minutes. Once this is finished you will receive a message like:
+
+```
+==> Builds finished. The artifacts of successful builds are:
+--> amazon-ebs: AMIs were created:
+eu-west-2: ami-123456789
+```
+
+Make a note of the the resource ID for the AMI e.g. `ami-123456789`.
+
+## Refreshing the Gitlab runners with your new AMI
+### Step 1: Refresh the Gitlab runner instances
+1. Replace ami in `terraform/etc/prod.tfvars` with the one from the build step
+2. Ensure you are logged in to AWS as `<%=account_cli_alias%>`
+3. Run `<%=project%> terraform apply`
+4. Review terraform changes before applying (if only ami has changed, this should only trigger an auto scaling group and launch config change), e.g.
+   ```shell
+     # aws_autoscaling_group.gitlab_runner will be updated in-place
+    ~ resource "aws_autoscaling_group" "gitlab_runner" {
+        id                        = "<%=project%>-prod-gitlab-runner"
+      ~ launch_configuration      = "<%=project%>-prod-gitlab-runner-20220704140116461300000001" -> (known after apply)
+        name                      = "<%=project%>-prod-gitlab-runner"
+        tags                      = [
+            {
+                "key"                 = "Name"
+                "propagate_at_launch" = "true"
+                "value"               = "<%=project%>-prod-gitlab-runner"
+            },
+        ]
+        # (22 unchanged attributes hidden)
+    }
+
+    # aws_launch_configuration.gitlab_runner must be replaced
+    +/- resource "aws_launch_configuration" "gitlab_runner" {
+      ~ arn                              = "arn:aws:autoscaling:eu-west-2:959537475797:launchConfiguration:d894af2b-8b9d-4a48-8470-5406bab51ad1:launchConfigurationName/dda-ci-prod-gitlab-runner-20220704140116461300000001" -> (known after apply)
+      ~ ebs_optimized                    = false -> (known after apply)
+      ~ id                               = "<%=project%>-prod-gitlab-runner-20220704140116461300000001" -> (known after apply)
+      ~ image_id                         = "ami-0eb1bd3aedb90d939" -> "ami-04bce8188c12cadf6" # forces replacement
+      ~ key_name                         = "<%=project%>-prod-gitlab-runner-ssh" -> (known after apply)
+      ~ name                             = "<%=project%>-prod-gitlab-runner-20220704140116461300000001" -> (known after apply)
+      - vpc_classic_link_security_groups = [] -> null
+    ...
+   ```
+5. Wait for terraform to finish applying
+
+### Step 2: Refresh the Gitlab runner instances
+1. Go to https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=<%=region%>#Instances:
+2. Select all existing gitlab runner instances
+3. Terminate all selected gitlab runner instances
+4. Autoscaling group should automatically recreate new instances with the new ami
+
+This process can take up to an hour. You can check the activity of the autoscaling group here: https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=<%=region%>#AutoScalingGroups:id=<%=project%>-prod-gitlab-runner;view=activity
+
+### Step 3: Commit packer/terraform changes
+Ensure any terraform changes are merged to master by creating a merge request
+
+# Debugging and other notes
+## Changing gitlab registration token
+1. Go to repo or group ci settings and copy the registration token
+2. Go to https://eu-west-2.console.aws.amazon.com/secretsmanager/secret?name=<%=project%>-prod-gitlab-token&region=<%=region%> and replace the token with the one from step 1
+3. Refresh gitlab instances by following `Step 2: Refresh the Gitlab runner instances`
+
+
+## Shell access to instances
+Shell access to instances uses AWS Session Manager.
+1. Go to https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=eu-west-2#Instances:
+2. Select the instance you want to access and click `Connect`, then select Session Manager. This will open a shell session in your browser.
+3. Alternatively, you can connect via aws cli using `aws ssm start-session --target <ec2 instance id>`
+
+Every session is logged to cloudwatch. You can view the logs at: https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=<%=region%>#logsV2:log-groups/log-group/<%=project%>-prod-ec2-session

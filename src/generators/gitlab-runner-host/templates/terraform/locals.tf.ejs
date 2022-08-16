@@ -1,0 +1,6 @@
+locals {
+  app       = "<%=project%>"
+  workspace = terraform.workspace
+  prefix    = "${local.app}-${local.workspace}"
+  vpc_cidr  = "173.31.0.0/16"
+}
