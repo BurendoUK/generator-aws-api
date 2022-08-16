@@ -70,7 +70,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
       if (Array.isArray(o)) return o.map((x) => normalise(x));
       if (typeof o !== 'object') return o;
       return Object.entries(o)
-        .map(([k, v]) => [k.replace(/_/g, ''), v])
+        .map(([k, v]): [string, any] => [k.replace(/_/g, ''), v])
         .reduce((s, [k, v]) => ({ ...s, [k]: normalise(v) }), {});
     };
 

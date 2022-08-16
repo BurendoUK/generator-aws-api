@@ -8,7 +8,7 @@ class DnsGenerator extends BaseGenerator {
   }
 
   async create() {
-    let answers = await this._prompt();
+    const answers = await this._prompt();
     answers.safe_name = answers.name.replace(/\./g, '-');
 
     this.fs.copyTpl(

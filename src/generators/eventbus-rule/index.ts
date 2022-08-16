@@ -36,7 +36,7 @@ class EventBusRuleGenerator extends BaseGenerator {
       message: 'Event Source',
       default: 'com.mycompany.myapp',
       type: 'input',
-      validate: souceName,
+      validate: sourceName,
       store: true
     });
     this._input({

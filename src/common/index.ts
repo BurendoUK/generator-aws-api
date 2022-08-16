@@ -100,8 +100,7 @@ class BaseGenerator extends Generator {
   async _prompt() {
     const split_checkbox_into_array = (type: string, v: string) => v && (type === 'checkbox' ? v.split(',') : v);
     const cli_arguments = Object.entries(this._inputs)
-      .map(([k, v]) => [k, split_checkbox_into_array(v.type, this.options[k])])
-      //@ts-ignore
+      .map(([k, v]): [string, any] => [k, split_checkbox_into_array(v.type, this.options[k])])
       .reduce((s, [k, v]) => ({ ...s, [k]: v }), {});
     const prompts_for_missing_cli_args = Object.entries(this._inputs)
       .map(([name, prompt]) => [name, prompt, cli_arguments[name]])
