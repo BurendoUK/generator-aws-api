@@ -57,7 +57,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
 
   async create_api_resource() {
     let answers = await this._prompt();
-    const { name, filename, language, vpc, listLayers } = answers;
+    const { name, filename, language, vpc, layers } = answers;
 
     const normalise = o => {
       if (Array.isArray(o)) return o.map(x => normalise(x));
@@ -122,7 +122,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
         language,
         runtime: languageRuntime(language),
         vpc,
-        listLayers,
+        layers,
       };
       await this.fs.copyTplAsync(
         this.templatePath('each/**/*'),
