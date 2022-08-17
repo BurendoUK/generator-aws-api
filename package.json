@@ -4,7 +4,7 @@
   "description": "Scaffold AWS api-gateway using terraform",
   "scripts": {
     "build": "rm -rf ./dist && tsc -b && npm run copy:files",
-    "copy:files": "copyfiles -u 1 ./src/**/*.ejs ./dist/ && copyfiles package.json ./dist/",
+    "copy:files": "copyfiles -u 1 -a ./src/**/*.ejs ./dist/ && copyfiles package.json ./dist/",
     "generator:local": "ts-node node_modules/.bin/yo",
     "link": "pushd dist && npm link && popd"
   },

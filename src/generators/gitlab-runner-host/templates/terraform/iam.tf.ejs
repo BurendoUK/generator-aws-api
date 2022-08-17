@@ -94,10 +94,10 @@ module "gitlab_runner_tf_assume_role" {
     {
       Action = "sts:AssumeRole"
       Effect = "Allow"
-      Resource = [
-        "arn:aws:iam::${var.dev_account_id}:role/${var.terraform_role_name}",
-        "arn:aws:iam::${var.test_account_id}:role/${var.terraform_role_name}",
-        "arn:aws:iam::${var.prod_account_id}:role/${var.terraform_role_name}"
+      Resource = [<% if (dev_account_id) { %>
+        "arn:aws:iam::${var.dev_account_id}:role/${var.terraform_role_name}",<% } %><% if (test_account_id) { %>
+        "arn:aws:iam::${var.test_account_id}:role/${var.terraform_role_name}",<% } %><% if (prod_account_id) { %>
+        "arn:aws:iam::${var.prod_account_id}:role/${var.terraform_role_name}"<% } %>
       ]
     }
   ]
