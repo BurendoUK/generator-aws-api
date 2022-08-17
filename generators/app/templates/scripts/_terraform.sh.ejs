@@ -1,3 +1,5 @@
+#!/bin/bash
+
 function _terraform_help() {
     echo
     echo "<%=project%> terraform <command> [options]"
@@ -14,13 +16,14 @@ function _terraform_help() {
 }
 
 function _terraform() {
-  command=$1
-  env=$2
-  args=(${@:3})
+  local command=$1
+  local args=(${@:3})
+  local env=$(_get_environment_name $2)
+  local vars_file=$(_get_environment_vars_file $env)
 
   case $command in
     "validate")
-    cd $root/terraform  
+    cd $root/terraform
     terraform validate $args
     ;;
 
@@ -31,35 +34,59 @@ function _terraform() {
 
     "init")
     cd $root/terraform
-    terraform workspace select $env || terraform workspace new $env
-    terraform init $args
+    terraform init -upgrade
     ;;
 
     "plan")
     cd $root/terraform
     terraform workspace select $env || terraform workspace new $env
     terraform init
-    terraform plan -var-file="./etc/${env}.tfvars" -out=./tfplan $args
+    terraform plan -var-file=$vars_file $args
     ;;
 
     "apply")
     cd $root/terraform
     terraform workspace select $env || terraform workspace new $env
     terraform init
-    terraform apply $args ./tfplan
+    terraform apply -var-file=$vars_file $args
     ;;
 
     "destroy")
     cd $root/terraform
     terraform workspace select $env || terraform workspace new $env
     terraform init
-    terraform destroy -var-file=./etc/dev.tfvars $args
+    terraform destroy -var-file=$vars_file $args
     if [ $env != "default" ]; then
       terraform workspace select default
       terraform workspace delete $env
     fi
     ;;
 
-    *) _terraform_help $args ;;
+    *) _terraform_help ;;
   esac
+}
+
+_get_environment_name() {
+    local environment=$1
+
+    if [[ -z $environment ]]; then
+        if [[ -z $TERRAFORM_LOCAL_WORKSPACE_OVERRIDE ]]; then
+            echo $(whoami | openssl dgst -sha1 -binary | xxd -p | cut -c1-8)
+        else
+            echo $TERRAFORM_LOCAL_WORKSPACE_OVERRIDE
+        fi
+    else
+        echo $environment
+    fi
+}
+
+_get_environment_vars_file() {
+    local environment=$1
+    local vars_prefix="prod"
+
+    if [[ $environment != "prod" ]]; then
+        vars_prefix="dev"
+    fi
+
+    echo "./etc/${vars_prefix}.tfvars"
 }

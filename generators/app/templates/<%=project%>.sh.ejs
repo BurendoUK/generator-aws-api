@@ -1,10 +1,10 @@
-export root=$(cd $(dirname ${BASH_SOURCE[0]:-$0}) && pwd)
+#!/bin/bash
+
+root=$(cd $(dirname ${BASH_SOURCE[0]:-$0}) && pwd)
 
 source $root/scripts/_aws.sh
 source $root/scripts/_terraform.sh
 source $root/scripts/_make.sh
-
-export file="${BASH_SOURCE##*/}"
 
 function _show_help() {
     echo
@@ -24,22 +24,16 @@ function _show_help() {
 }
 
 function <%=project%>() {
-
-  command=$1
-  args=(${@:2})
-
-  echo
-  echo "Directory: $root"
-  echo
-
-  current=$(pwd)
+  local command=$1
+  local args=(${@:2})
+  local current=$(pwd)
   cd $root
 
   case $command in
     "aws") _aws $args ;;
     "make") _make $args ;;
     "terraform") _terraform $args ;;
-    *) _show_help $args ;;
+    *) _show_help ;;
   esac
 
   cd $current
