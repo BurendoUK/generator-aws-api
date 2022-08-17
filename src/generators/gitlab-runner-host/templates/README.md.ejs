@@ -70,7 +70,7 @@ This can take up to 15 minutes. Once this is finished you will receive a message
 ```
 ==> Builds finished. The artifacts of successful builds are:
 --> amazon-ebs: AMIs were created:
-eu-west-2: ami-123456789
+<%=region%>>: ami-123456789
 ```
 
 Make a note of the the resource ID for the AMI e.g. `ami-123456789`.
@@ -99,7 +99,7 @@ Make a note of the the resource ID for the AMI e.g. `ami-123456789`.
 
     # aws_launch_configuration.gitlab_runner must be replaced
     +/- resource "aws_launch_configuration" "gitlab_runner" {
-      ~ arn                              = "arn:aws:autoscaling:eu-west-2:959537475797:launchConfiguration:d894af2b-8b9d-4a48-8470-5406bab51ad1:launchConfigurationName/dda-ci-prod-gitlab-runner-20220704140116461300000001" -> (known after apply)
+      ~ arn                              = "arn:aws:autoscaling:<%=region%>:959537475797:launchConfiguration:d894af2b-8b9d-4a48-8470-5406bab51ad1:launchConfigurationName/dda-ci-prod-gitlab-runner-20220704140116461300000001" -> (known after apply)
       ~ ebs_optimized                    = false -> (known after apply)
       ~ id                               = "<%=project%>-prod-gitlab-runner-20220704140116461300000001" -> (known after apply)
       ~ image_id                         = "ami-0eb1bd3aedb90d939" -> "ami-04bce8188c12cadf6" # forces replacement
@@ -111,12 +111,12 @@ Make a note of the the resource ID for the AMI e.g. `ami-123456789`.
 5. Wait for terraform to finish applying
 
 ### Step 2: Refresh the Gitlab runner instances
-1. Go to https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=<%=region%>#Instances:
+1. Go to https://<%=region%>.console.aws.amazon.com/ec2/v2/home?region=<%=region%>#Instances:
 2. Select all existing gitlab runner instances
 3. Terminate all selected gitlab runner instances
 4. Autoscaling group should automatically recreate new instances with the new ami
 
-This process can take up to an hour. You can check the activity of the autoscaling group here: https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=<%=region%>#AutoScalingGroups:id=<%=project%>-prod-gitlab-runner;view=activity
+This process can take up to an hour. You can check the activity of the autoscaling group here: https://<%=region%>.console.aws.amazon.com/ec2/v2/home?region=<%=region%>#AutoScalingGroups:id=<%=project%>-prod-gitlab-runner;view=activity
 
 ### Step 3: Commit packer/terraform changes
 Ensure any terraform changes are merged to master by creating a merge request
@@ -124,14 +124,14 @@ Ensure any terraform changes are merged to master by creating a merge request
 # Debugging and other notes
 ## Changing gitlab registration token
 1. Go to repo or group ci settings and copy the registration token
-2. Go to https://eu-west-2.console.aws.amazon.com/secretsmanager/secret?name=<%=project%>-prod-gitlab-token&region=<%=region%> and replace the token with the one from step 1
+2. Go to https://<%=region%>.console.aws.amazon.com/secretsmanager/secret?name=<%=project%>-prod-gitlab-token&region=<%=region%> and replace the token with the one from step 1
 3. Refresh gitlab instances by following `Step 2: Refresh the Gitlab runner instances`
 
 
 ## Shell access to instances
 Shell access to instances uses AWS Session Manager.
-1. Go to https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=eu-west-2#Instances:
+1. Go to https://<%=region%>.console.aws.amazon.com/ec2/v2/home?region=<%=region%>#Instances:
 2. Select the instance you want to access and click `Connect`, then select Session Manager. This will open a shell session in your browser.
 3. Alternatively, you can connect via aws cli using `aws ssm start-session --target <ec2 instance id>`
 
-Every session is logged to cloudwatch. You can view the logs at: https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=<%=region%>#logsV2:log-groups/log-group/<%=project%>-prod-ec2-session
+Every session is logged to cloudwatch. You can view the logs at: https://e<%=region%>.console.aws.amazon.com/cloudwatch/home?region=<%=region%>#logsV2:log-groups/log-group/<%=project%>-prod-ec2-session
