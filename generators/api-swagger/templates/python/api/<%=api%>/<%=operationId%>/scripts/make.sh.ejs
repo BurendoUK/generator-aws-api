@@ -1,0 +1,19 @@
+#!/bin/bash
+
+function _build() {
+    python make.py
+}
+
+function _clean() {
+    echo "Cleaning $(dirname $(pwd))"
+    rm -rf ../dist
+}
+
+command=$1
+args=(${@:2})
+
+case $command in
+    "build") _build $args ;;
+    "clean") _clean $args ;;
+    *) echo "Unhandled command ${command}" ;;
+esac

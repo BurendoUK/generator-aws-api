@@ -15,6 +15,6 @@ function _make() {
     case $command in
         "build") find $root -name make.sh | xargs -I % sh -c 'cd $(dirname %) && ./make.sh build' ;;
         "clean") find $root -name make.sh | xargs -I % sh -c 'cd $(dirname %) && ./make.sh clean' ;;
-        "*") echo "Unhandled command: $command" ;;
+        *) echo "Unhandled command: $command" ;;
     esac
 }
