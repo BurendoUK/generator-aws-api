@@ -1,0 +1,189 @@
+import shutil
+from configparser import ConfigParser
+from contextlib import contextmanager
+from functools import cache, partial
+from itertools import filterfalse
+from pathlib import Path
+from platform import python_version
+from typing import Generator, Iterable, List
+
+import sh
+
+DIST_DIR = "dist"
+BUILD_DIR = "build"
+UNNECESSARY_DIRS = ["__pycache__", "**/*.dist-info", "*tests"]
+
+
+def get_site_packages_path() -> Path:
+    return Path("lib") / get_python_version() / "site-packages"
+
+@cache
+def get_repo_root_dir() -> Path:
+    return Path(__file__).resolve().parent.parent.parent.parent
+
+
+@cache
+def get_lambda_base_dir() -> Path:
+    return Path(__file__).parent.parent
+
+
+@cache
+def get_dist_dir() -> Path:
+    root_dir = get_lambda_base_dir()
+    return root_dir / DIST_DIR
+
+
+def ignore_build_dirs(path: str, _contents: List[str]) -> List[str]:
+    if path == str(get_lambda_base_dir()):
+        return ['dist', 'scripts', *UNNECESSARY_DIRS]
+    return UNNECESSARY_DIRS
+
+
+def copy_source_code(source_dir: Path, build_dir: Path):
+    shutil.copytree(src=source_dir, dst=build_dir, ignore=ignore_build_dirs)
+
+
+def clean_build_dir(build_dir: Path):
+    if build_dir.exists():
+        shutil.rmtree(build_dir)
+    build_dir.mkdir(parents=True)
+
+
+def zip_package(build_dir: str, format="zip"):
+    archive_path = Path(f"{str(build_dir)}.{format}")
+    if archive_path.exists():
+        archive_path.unlink()
+    shutil.make_archive(base_name=build_dir, format=format, root_dir=build_dir)
+
+
+@contextmanager
+def create_zip_package(package_name: str) -> Generator[Path, None, None]:
+    dist_dir = get_dist_dir()
+    build_dir = dist_dir / BUILD_DIR
+    layer_base_dir = build_dir / "python" / get_site_packages_path().parent
+    package_dir = layer_base_dir / package_name
+
+    clean_build_dir(build_dir=dist_dir)
+    layer_base_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"Building {package_name}")
+    yield package_dir
+    zip_package(build_dir)
+    shutil.move(dist_dir / f"{BUILD_DIR}.zip", dist_dir / f"{package_name}.zip")
+
+
+@cache
+def get_pipfile_dependencies(root_dir: Path):
+    config = ConfigParser()
+    config.read(root_dir / "Pipfile")
+    raw_dependencies = dict(config["packages"]).keys()
+    return raw_dependencies
+
+
+def _is_auxiliary(root_dir: Path, requirement: str):
+    pipfile_dependencies = get_pipfile_dependencies(root_dir)  # NB: cached
+    pkg_name = requirement.split("=")[0]
+    return pkg_name.lower() not in pipfile_dependencies
+
+
+def pipenv_freeze(root_dir: Path) -> Iterable[str]:
+    """Generate requirements via pipenv + pip freeze, excluding aux packages"""
+    _raw_requirements = sh.pipenv("run", "pip", "freeze", _cwd=root_dir)
+    raw_requirements = str(_raw_requirements).split("\n")
+    yield from filterfalse(partial(_is_auxiliary, root_dir), raw_requirements)
+
+
+def loosen_requirement(requirement: str) -> str:
+    """
+    Since non-linux and linux environments aren't guaranteed to have the same
+    package versions, we loosen the version requirement for non-linux distros here.
+    """
+    return requirement.replace("==", ">=")
+
+
+@contextmanager
+def create_requirements_from_pipfile(root_dir: Path) -> Generator[str, None, None]:
+    requirements_txt_path = root_dir / "requirements-temp.txt"
+    with create_temp_path(path=requirements_txt_path, is_dir=False):
+        with open(requirements_txt_path, "w") as f:
+            requirements = pipenv_freeze(root_dir)
+            loose_requirements = map(loosen_requirement, requirements)
+            for req in loose_requirements:
+                f.write(req + "\n")
+        yield requirements_txt_path
+
+
+@cache
+def get_python_version() -> str:
+    major, minor, _ = python_version().split(".")
+    return f"python{major}.{minor}"
+
+
+def build_linux_dependencies(venv_dir: Path):
+    """
+    Create a linux venv on any OS by installing the local Pipfile in
+    the linux container recommended for lambda layers.
+    """
+    root_dir = venv_dir.parent
+    python_version = get_python_version()
+    with create_requirements_from_pipfile(root_dir) as requirements_txt_path:
+        sh.docker(
+            "run",
+            "-v",
+            f"{root_dir.resolve()}:/var/task",
+            f"public.ecr.aws/sam/build-{python_version}",
+            "/bin/sh",
+            "-c",
+            f"pip install -r {requirements_txt_path.name} -t $PWD/{venv_dir.name}; exit",
+            _cwd=root_dir,
+        )
+
+
+@contextmanager
+def build_linux_venv() -> Generator[Path, None, None]:
+    """
+    Yield the local venv path if OS is linux, otherwise build a temporary linux
+    venv and return the path. Cleans up the temporary venv on exit.
+    """
+    root_dir = get_repo_root_dir()
+    venv_dir = root_dir / ".venv-temp"
+    requirements_txt_path = root_dir / "temp-requirements.txt"
+    with create_temp_path(path=venv_dir, is_dir=True), create_temp_path(path=requirements_txt_path, is_dir=False):
+        requirements = sh.pipenv("requirements", _cwd=root_dir)
+        with open(requirements_txt_path, "w") as f:
+            data_split = str(requirements).split('\n')
+            f.write('\n'.join(data_split[:-1]))
+        sh.pipenv("run", "pip", "install", "--upgrade", "-r", requirements_txt_path, "--target", venv_dir, _cwd=root_dir)
+        yield venv_dir
+
+
+@contextmanager
+def create_temp_path(path: Path, is_dir: bool) -> Generator[Path, None, None]:
+    error = None
+    try:
+        if is_dir:
+            path.mkdir(parents=True)
+        else:
+            path.touch()
+        yield
+    except Exception as err:
+        error = err
+    finally:
+        pass
+        if is_dir:
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+    if error:
+        raise error
+
+
+def build():
+    with create_zip_package(package_name="site-packages") as build_dir:
+        with build_linux_venv() as venv_dir:
+            copy_source_code(source_dir=venv_dir, build_dir=build_dir)
+
+
+if __name__ == "__main__":
+    build()
+
