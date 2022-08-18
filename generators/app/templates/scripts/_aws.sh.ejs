@@ -1,9 +1,6 @@
 #!/bin/bash
 
 function _aws_help() {
-    local verb=$1
-    local args=(${@:2})
-
     echo
     echo "<%=project%> aws <command> [options]"
     echo
@@ -16,14 +13,14 @@ function _aws_help() {
 }
 
 function _aws() {
-    local verb=$1
+    local command=$1
     local args=(${@:2})
 
-    case $verb in
+    case $command in
         "login") _aws_login $args ;;
         "check-creds") _aws_check_creds $args ;;
         "reset-creds") _aws_reset_creds $args ;;
-        *) _aws_help $args ;;
+        *) _aws_help ;;
     esac
 }
 
