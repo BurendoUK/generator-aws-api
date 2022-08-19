@@ -1,24 +1,19 @@
 #!/bin/bash
 
 function _install() {
-    pipenv lock --clear
     pipenv install --dev
-}
-
-function _build() {
-    ../.venv/bin/python make.py
 }
 
 function _clean() {
     echo "Cleaning $(dirname $(pwd))"
-    rm -rf ../dist
+    rm -rf ../build
+    rm -rf ../*.egg-info
 }
 
 command=$1
 args=(${@:2})
 
 case $command in
-    "build") _build $args ;;
     "clean") _clean $args ;;
     "install") _install ;;
     *) echo "Unhandled command ${command}" ;;

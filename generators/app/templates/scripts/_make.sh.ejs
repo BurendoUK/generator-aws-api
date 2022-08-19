@@ -8,6 +8,7 @@ function _make_help() {
     echo "  help          - this help screen"
     echo "  build         - Builds the code"
     echo "  clean         - Cleans the artefacts"
+    echo "  install       - Setup local dependencies"
 }
 
 function _make() {
@@ -15,6 +16,7 @@ function _make() {
     case $command in
         "build") find $root -name make.sh | xargs -I % sh -c 'cd $(dirname %) && ./make.sh build' ;;
         "clean") find $root -name make.sh | xargs -I % sh -c 'cd $(dirname %) && ./make.sh clean' ;;
+        "install") find $root -name make.sh | xargs -I % sh -c 'cd $(dirname %) && ./make.sh install' ;;
         *) echo "Unhandled command: $command" ;;
     esac
 }

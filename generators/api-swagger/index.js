@@ -1,6 +1,6 @@
 const fs = require("fs");
 const yaml = require("js-yaml");
-const { BaseGenerator, kebabCase, listApis, listApiResources, toKebabCase, languages, languageRuntime, listVpcs, listLayers } = require("../../common");
+const { BaseGenerator, kebabCase, languages, languageRuntime, listVpcs, listLayers, languageVersion } = require("../../common");
 
 const isYaml = filename => filename.endsWith('.yaml') || filename.endsWith('yml');
 
@@ -30,7 +30,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
       validate: validateFilename,
       default: 'swagger.yaml'
     });
-    this._input({ 
+    this._input({
       name: 'endpoints',
       type: 'checkbox',
       choices: ({ filename }) => apiEndPoints(filename),
@@ -42,7 +42,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
       choices: languages,
       store: true
     });
-    this._input({ 
+    this._input({
       name: 'vpc',
       type: 'list',
       choices: listVpcs(this.destinationRoot())
@@ -114,13 +114,14 @@ class ApiSwaggerGenerator extends BaseGenerator {
       { globOptions: { dot: true } },
     );
     for (const [path, method, operationId] of endpoints) {
-      const data = { 
+      const data = {
         api: name,
         path,
         method,
         operationId,
         language,
         runtime: languageRuntime(language),
+        languageVersion: languageVersion(language),
         vpc,
         layers,
       };

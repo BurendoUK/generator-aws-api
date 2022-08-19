@@ -5,7 +5,7 @@ const Generator = require('yeoman-generator');
 const NONE = "(none)"
 const isNone = v => v === NONE;
 const isNotNone = v => !isNone(v);
-const safeNone = (v, safeValue = '') => isNone(v) ? safeValue : v; 
+const safeNone = (v, safeValue = '') => isNone(v) ? safeValue : v;
 
 const or = (a, b) => s => {
 	const ra = a(s);
@@ -27,14 +27,17 @@ const _languages = {
 	"python": {
 		extension: "py",
 		runtime: "python3.9",
+		version: "3.9"
 	},
 	"typescript": {
 		extension: "ts",
 		runtime: "nodejs14.x",
+		version: "14"
 	},
 	"javascript": {
 		extension: "js",
 		runtime: "nodejs14.x",
+		version: "14"
 	},
 };
 
@@ -42,6 +45,7 @@ const languages = () => Object.keys(_languages);
 
 const languageRuntime = language => _languages[language].runtime;
 const languageExtension = language => _languages[language].extension;
+const languageVersion = language => _languages[language].version;
 
 const languageIgnorePattern = language => Object
 	.entries(_languages)
@@ -137,4 +141,5 @@ module.exports = {
 	languages,
 	languageRuntime,
 	languageIgnorePattern,
+	languageVersion
 }

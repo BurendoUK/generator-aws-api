@@ -1,5 +1,5 @@
 const fs = require('fs/promises');
-const { BaseGenerator, kebabCase, shortCode } = require("../../common");
+const { BaseGenerator, kebabCase, shortCode, languages, languageVersion } = require("../../common");
 
 class AppGenerator extends BaseGenerator {
   constructor(args, opts) {
@@ -19,10 +19,12 @@ class AppGenerator extends BaseGenerator {
     this._input({ name: "assume_test_role",     type: "input", message: "test role (multi-account only)", default: "terraform" });
     this._input({ name: "assume_prod_account",  type: "input", message: "prod account (multi-account only)", default: ({ account_id }) => account_id });
     this._input({ name: "assume_prod_role",     type: "input", message: "prod role (multi-account only)", default: "terraform" });
+    this._input({ name: 'language', type: 'list', choices: languages });
   }
 
   async core_application() {
     let state = await this._prompt();
+    state['languageVersion'] = languageVersion(state['language']);
 
     await this.fs.copyTplAsync(
       this.templatePath('**/*'),
