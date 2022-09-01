@@ -2,6 +2,12 @@
   "name": "generator-aws-api",
   "version": "0.1.0",
   "description": "Scaffold AWS api-gateway using terraform",
+  "scripts": {
+    "build": "rm -rf ./dist && tsc -b && npm run copy:files",
+    "copy:files": "copyfiles -u 1 ./src/**/*.ejs ./dist/ && copyfiles package.json ./dist/",
+    "generator:local": "ts-node node_modules/.bin/yo",
+    "link": "pushd dist && npm link && popd"
+  },
   "files": [
     "generators"
   ],
@@ -13,5 +19,14 @@
   "dependencies": {
     "js-yaml": "^4.1.0",
     "yeoman-generator": "^5.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.14",
+    "@types/yeoman-generator": "^5.2.11",
+    "copyfiles": "^2.4.1",
+    "prettier": "^2.7.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.2",
+    "yo": "^4.3.0"
   }
 }
