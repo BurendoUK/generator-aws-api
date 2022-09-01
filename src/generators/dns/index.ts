@@ -1,26 +1,25 @@
-const { BaseGenerator, processDestinationPath, domainName } = require('../../common');
+import { BaseGenerator, domainName } from '../../common';
 
 class DnsGenerator extends BaseGenerator {
-
   constructor(args, opts) {
     super(args, opts);
 
-    this._input({ name: "name", type: 'input',  validate: domainName });
+    this._input('name', { type: 'input', validate: domainName });
   }
 
   async create() {
     let answers = await this._prompt();
-    answers.safe_name = answers.name.replace(/\./g, "-");
+    answers.safe_name = answers.name.replace(/\./g, '-');
 
-    await this.fs.copyTplAsync(
+    this.fs.copyTpl(
       this.templatePath('**/*.ejs'),
       this.destinationRoot(),
       answers,
       {},
       {
-        globOptions: { dot: true },
+        globOptions: { dot: true }
       }
-    )
+    );
   }
 }
 
