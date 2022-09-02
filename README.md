@@ -21,7 +21,8 @@ npm install yo --global
 git clone git@github.com:BurendoUK/generator-aws-api.git
 cd generator-aws-api.git
 npm install
-npm link
+npm run build
+npm run link
 ```
 
 ## Running
