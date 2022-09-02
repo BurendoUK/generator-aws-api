@@ -1,25 +1,24 @@
-const { BaseGenerator, processDestinationPath, kebabCase } = require('../../common');
+import { BaseGenerator, kebabCase } from '../../common';
 
 class ApiGenerator extends BaseGenerator {
-
   constructor(args, opts) {
     super(args, opts);
 
-    this._input({ name: "name", type: 'input', validate: kebabCase })
+    this._input('name', { type: 'input', validate: kebabCase });
   }
 
   async create_api() {
-    let answers = await this._prompt();
+    const answers = await this._prompt();
 
-    await this.fs.copyTplAsync(
+    this.fs.copyTpl(
       this.templatePath('**/*.ejs'),
       this.destinationRoot(),
       answers,
       {},
       {
-        globOptions: { dot: true },
+        globOptions: { dot: true }
       }
-    )
+    );
   }
 }
 
