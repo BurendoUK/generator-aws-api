@@ -1,4 +1,4 @@
-import { BaseGenerator, kebabCase } from '../../common';
+import { BaseGenerator } from '../../common';
 
 class KmsBaseGenerator extends BaseGenerator {
   constructor(args, opts) {
