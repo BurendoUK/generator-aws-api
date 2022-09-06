@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "description": "Scaffold AWS api-gateway using terraform",
   "scripts": {
-    "build": "rm -rf ./dist && tsc -b && npm run copy:files",
-    "copy:files": "copyfiles -u 1 ./src/**/*.ejs ./dist/ && copyfiles package.json ./dist/",
+    "clean": "ts-node clean.ts",
+    "build": "npm run clean && tsc -b && npm run copy:files",
+    "copy:files": "copyfiles -au 1 ./src/**/*.ejs ./dist/ && copyfiles package.json ./dist/",
     "generator:local": "ts-node node_modules/.bin/yo",
     "link": "pushd dist && npm link && popd"
   },

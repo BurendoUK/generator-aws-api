@@ -1,0 +1,119 @@
+#!/bin/bash
+
+function _terraform_help() {
+    echo
+    echo "<%=project%> terraform <command> [options]"
+    echo
+    echo "commands:"
+    echo "  help             - this help screen"
+    echo "  validate         - runs 'terraform validate'"
+    echo "  fmt              - runs 'terraform fmt'"
+    echo "  init             - runs 'terraform init'"
+    echo "  plan <env>       - runs 'terraform plan'"
+    echo "  apply <env>      - runs 'terraform apply'"
+    echo "  destroy <env>    - runs 'terraform destroy'"
+    echo "  ci-destroy <env> - runs 'terraform destroy -auto-approve'"
+    echo "  relock           - relock terraform cache hashes for all platforms"
+    echo
+}
+
+function _terraform() {
+  local command=$1
+  local env
+  local vars_file
+  local plan_file
+  env=$(_get_environment_name "$2")
+  vars_file=$(_get_environment_vars_file "$env")
+  plan_file="./.${env}-tfplan"
+
+  case $command in
+    "validate")
+    cd "$root/terraform"
+    terraform validate "${@:3}"
+    ;;
+
+    "fmt")
+    cd "$root/terraform"
+    terraform fmt "${@:3}"
+    ;;
+
+    "init")
+    cd "$root/terraform"
+    terraform init -upgrade
+    ;;
+
+    "plan")
+    cd "$root/terraform"
+    terraform workspace select "$env" || terraform workspace new "$env"
+    terraform plan -var-file="$vars_file" -out="$plan_file" "${@:3}"
+    ;;
+
+    "apply")
+    cd "$root/terraform"
+    if [ ! -f "$plan_file" ]
+    then
+        echo "Plan file not found, please run:  <%=project%> terraform plan"
+    else
+        terraform workspace select "$env" || terraform workspace new "$env"
+        terraform apply "$plan_file"
+        terraform output -json > output.json
+    fi
+    ;;
+
+    "destroy")
+    cd "$root/terraform"
+    terraform workspace select "$env" || terraform workspace new "$env"
+    terraform destroy -var-file="$vars_file" "${@:3}"
+    if [ "$env" != "default" ]; then
+      terraform workspace select default
+      terraform workspace delete "$env"
+    fi
+    ;;
+
+    "ci-destroy")
+    cd "$root/terraform"
+    terraform workspace select "$env" || terraform workspace new "$env"
+    terraform destroy -auto-approve -var-file="$vars_file" "${@:3}"
+    if [ "$env" != "default" ]; then
+      terraform workspace select default
+      terraform workspace delete "$env"
+    fi
+    ;;
+
+    "relock")
+     cd "$root/terraform"
+     terraform providers lock -platform=windows_amd64 -platform=darwin_amd64 -platform=linux_amd64
+    ;;
+
+    *) _terraform_help ;;
+  esac
+}
+
+_get_environment_name() {
+    local environment=$1
+
+    if [[ -z $environment ]]; then
+        if [[ -z $TERRAFORM_LOCAL_WORKSPACE_OVERRIDE ]]; then
+            echo "$(whoami | openssl dgst -sha1 -binary | xxd -p | cut -c1-8)"
+        else
+            echo "$TERRAFORM_LOCAL_WORKSPACE_OVERRIDE"
+        fi
+    else
+        echo "$environment"
+    fi
+}
+
+_get_environment_vars_file() {
+    local environment=$1
+    local vars_prefix="prod"
+
+    if [[ $environment == "prod" ]]; then
+        vars_prefix="prod"
+    elif [[ $environment == "ref" ]]; then
+        vars_prefix="test"
+    else
+        vars_prefix="dev"
+    fi
+
+    echo "./etc/${vars_prefix}.tfvars"
+}
