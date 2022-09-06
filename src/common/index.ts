@@ -90,27 +90,47 @@ class BaseGenerator extends Generator {
   }
 
   protected _requireFile(filename: string, message: string) {
-    const filepath = path.join(this.destinationRoot(), filename)
+    const filepath = path.join(this.destinationRoot(), filename);
     if (!fs.existsSync(filepath)) {
-      throw new Error(message)
+      throw new Error(message);
     }
   }
 
   protected _input(name: string, promptConfig: Question, dataType: ArgumentConfigType = String) {
-    this.argument(name, { type: dataType, required: false, default: promptConfig.default });
+    this.argument(name, { type: dataType, required: false });
     this._inputs[name] = promptConfig;
   }
 
-  protected _getArgumentValue(promptConfig: Question, value: string): string | string[] {
+  protected _getArgumentValue(name: string, promptConfig: Question, value: string): string | string[] {
     if (value && promptConfig.type === 'checkbox') {
       return value.split(',');
     }
+
+    const defaultValue = this._getDefaultValue(name, promptConfig);
+
+    if (!value && defaultValue) {
+      return defaultValue;
+    }
+
     return value;
+  }
+
+  protected _getDefaultValue(name: string, promptConfig: Question) {
+    let defaultValue = promptConfig.default;
+    if (typeof promptConfig.default === 'function') {
+      defaultValue = promptConfig.default(this.options);
+    }
+
+    if (promptConfig.store) {
+      return this.config.get(name) || defaultValue;
+    }
+
+    return defaultValue;
   }
 
   protected _getCliArgs(): IGeneratorCliArgs {
     return Object.entries(this._inputs)
-      .map(([name, config]) => ({ [name]: this._getArgumentValue(config, this.options[name]) }))
+      .map(([name, config]) => ({ [name]: this._getArgumentValue(name, config, this.options[name]) }))
       .reduce((result, current) => Object.assign(result, current), {});
   }
 
@@ -142,9 +162,7 @@ class BaseGenerator extends Generator {
   }
 
   protected async _prompt() {
-    console.log(this._inputs);
     const cliArgs = this._getCliArgs();
-    console.log(cliArgs);
     const promptsForMissingCliArgs = this._getMissingCliArgPrompts(cliArgs);
     const answers = (await this.prompt(promptsForMissingCliArgs)) || {};
 
