@@ -89,8 +89,15 @@ class BaseGenerator extends Generator {
     this._inputs = {};
   }
 
+  protected _requireFile(filename: string, message: string) {
+    const filepath = path.join(this.destinationRoot(), filename)
+    if (!fs.existsSync(filepath)) {
+      throw new Error(message)
+    }
+  }
+
   protected _input(name: string, promptConfig: Question, dataType: ArgumentConfigType = String) {
-    this.argument(name, { type: dataType, required: false });
+    this.argument(name, { type: dataType, required: false, default: promptConfig.default });
     this._inputs[name] = promptConfig;
   }
 

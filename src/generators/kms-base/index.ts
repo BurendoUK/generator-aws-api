@@ -1,16 +1,13 @@
 import { BaseGenerator, kebabCase } from '../../common';
-import * as path from 'path';
 
-class KmsKeyGenerator extends BaseGenerator {
+class KmsBaseGenerator extends BaseGenerator {
   constructor(args, opts) {
     super(args, opts);
 
-    this._input('name', { type: 'input', validate: kebabCase });
-    this._input('description', { type: 'input' });
+    this._input('deletion_window_in_days', { type: 'number', default: 7 });
   }
 
   async create() {
-    this._requireFile(path.join('terraform', 'kms.tf'), 'kms base file not found. Please run: yo aws-api:kms-base');
     const results = await this._prompt();
 
     this.fs.copyTpl(
@@ -25,4 +22,4 @@ class KmsKeyGenerator extends BaseGenerator {
   }
 }
 
-module.exports = KmsKeyGenerator;
+module.exports = KmsBaseGenerator;
