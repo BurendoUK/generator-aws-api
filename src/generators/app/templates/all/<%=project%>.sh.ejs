@@ -1,10 +1,12 @@
 #!/bin/bash
 
-root=$(cd $(dirname ${BASH_SOURCE[0]:-$0}) && pwd)
+export PIPENV_VENV_IN_PROJECT=1
+root=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 
-source $root/scripts/_aws.sh
-source $root/scripts/_terraform.sh
-source $root/scripts/_make.sh
+source "$root/scripts/_aws.sh"
+source "$root/scripts/_terraform.sh"
+source "$root/scripts/_test.sh"
+source "$root/scripts/_make.sh"
 
 function _show_help() {
     echo
@@ -20,19 +22,23 @@ function _show_help() {
     echo "  make      - calls the make/build routines"
     echo "  aws       - aws commands"
     echo "  terraform - terraform commands"
+    echo "  test      - run tests"
     echo
 }
 
 function <%=project%>() {
+  local current
   local command=$1
-  local args=(${@:2})
-  local current=$(pwd)
+  current=$(pwd)
+
   cd $root
 
   case $command in
-    "aws") _aws $args ;;
-    "make") _make $args ;;
-    "terraform") _terraform $args ;;
+    "aws") _aws "${@:2}" ;;
+    "make") _make "${@:2}" ;;
+    "make:root") _make_root "${@:2}" ;;
+    "terraform") _terraform "${@:2}" ;;
+    "test") _test "${@:2}" ;;
     *) _show_help ;;
   esac
 

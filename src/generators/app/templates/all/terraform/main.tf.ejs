@@ -10,8 +10,8 @@ terraform {
     encrypt               = false
     region                = "<%=region%>"
     bucket                = "<%=state_bucket%>"
-    dynamodb_table        = "<%=lock_table%>"
-    key                   = "terraform-state"
+    dynamodb_table        = "<%=state_lock_table%>"
+    key                   = "tf.state"
     workspace_key_prefix  = "<%=project%>"
   }
 }
