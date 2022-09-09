@@ -1,6 +1,5 @@
 import { BaseGenerator, kebabCase } from '../../common';
-
-const BILLING_MODES = ['PROVISIONED', 'PAY_PER_REQUEST'];
+import * as path from 'path';
 
 class KmsKeyGenerator extends BaseGenerator {
   constructor(args, opts) {
@@ -11,12 +10,13 @@ class KmsKeyGenerator extends BaseGenerator {
   }
 
   async create() {
-    let answers = await this._prompt();
+    this._requireFile(path.join('terraform', 'kms.tf'), 'kms base file not found. Please run: yo aws-api:kms-base');
+    const results = await this._prompt();
 
     this.fs.copyTpl(
       this.templatePath('**/*.ejs'),
       this.destinationRoot(),
-      answers,
+      results,
       {},
       {
         globOptions: { dot: true }
