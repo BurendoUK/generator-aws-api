@@ -136,7 +136,7 @@ class BaseGenerator extends Generator {
 
   protected _getMissingCliArgPrompts(cliArgs: IGeneratorCliArgs): Question[] {
     return Object.entries(this._inputs)
-      .filter(([name, config]) => this._isNotValidCliArg(config, cliArgs[name]))
+      .filter(([name, config]) => this._showPrompt(config, cliArgs[name]))
       .map(([name, { name: _name, default: _default, ...rest }]) => ({
         ...rest,
         name,
@@ -144,14 +144,27 @@ class BaseGenerator extends Generator {
       }));
   }
 
-  protected _isNotValidCliArg(promptConfig: Question, value: string | string[]): boolean {
+  protected _showPrompt(promptConfig: Question, value: string | string[]): boolean {
     const { validate, type } = promptConfig;
     const choices: Function | any[] = promptConfig['choices'];
+
+    if (!this._promptWhenConditionMet(promptConfig)) {
+      return false;
+    }
+
     return (
       typeof value === 'undefined' ||
       (validate && validate(value) !== true) ||
       (type === 'list' && !this._getValidChoices(choices).includes(value))
     );
+  }
+
+  protected _promptWhenConditionMet(promptConfig: Question): boolean {
+    const { when } = promptConfig;
+    if (when && typeof when === 'function') {
+      return <boolean>when(this.options);
+    }
+    return true;
   }
 
   protected _getValidChoices(choices: Function | any[]): any[] {

@@ -11,12 +11,12 @@ resource "aws_dynamodb_table" "<%=name%>" {
 <% } -%>
   attribute {
     name = "<%=pk%>"
-    type = "S"
+    type = "<%=pk_type%>"
   }
 <% if (sk) { -%>
   attribute {
     name = "<%=sk%>"
-    type = "S"
+    type = "<%=sk_type%>"
   }
 <% } if (ttl) { -%>
   ttl {
@@ -34,12 +34,11 @@ resource "aws_dynamodb_table" "<%=name%>" {
 
 resource "aws_iam_policy" "<%=name%>__dynamodb-read" {
   name = "${local.prefix}--<%=name%>--dynamodb-read"
-  path = "/"
-  description = "Query the <%=name%> table"
+  description = "Read the <%=name%> table"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-    <% if (kms_key !== "(none)") { -%>
+<% if (kms_key !== "(none)") { -%>
       {
         Action = [
           "kms:Decrypt",
@@ -59,7 +58,7 @@ resource "aws_iam_policy" "<%=name%>__dynamodb-read" {
           "dynamodb:GetItem",
         ],
         Resource = [
-          aws_dynamodb_table.<%=name%>.arn
+          "${aws_dynamodb_table.<%=name%>.arn}*"
         ]
       }
     ]
@@ -68,8 +67,7 @@ resource "aws_iam_policy" "<%=name%>__dynamodb-read" {
 
 resource "aws_iam_policy" "<%=name%>__dynamodb-write" {
   name = "${local.prefix}--<%=name%>--dynamodb-write"
-  path = "/"
-  description = "Query the <%=name%> table"
+  description = "Write to the <%=name%> table"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -93,7 +91,7 @@ resource "aws_iam_policy" "<%=name%>__dynamodb-write" {
           "dynamodb:DeleteItem",
         ],
         Resource = [
-          aws_dynamodb_table.<%=name%>.arn
+          "${aws_dynamodb_table.<%=name%>.arn}*"
         ]
       }
     ]
