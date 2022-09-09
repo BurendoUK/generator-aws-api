@@ -6,6 +6,7 @@ This project is still very much a Work In Progress.
 
 ## Requirements
 
+* AWS
 * nodejs
 * npm
 * yeoman
@@ -23,6 +24,33 @@ cd generator-aws-api.git
 npm install
 npm link
 ```
+
+## AWS Accounts
+
+This is a multi-account setup, and relies on the ability to assume roles across accounts.
+
+* Accounts
+  * A management account, which is normally called `mgmt`
+  * One or more deployment accounts, which are normally called `dev`, `test`, `uat`, `pre-prod`, `prod`, etc.
+* Roles
+  * Management Role
+  * Deployment Role, with a Trust Relationship to the Management Role (normally called `terraform`)
+
+     ```
+     {
+          "Version": "2012-10-17",
+          "Statement": [
+          {
+               "Effect": "Allow",
+               "Principal": {
+                    "AWS": "arn:aws:iam::<MGMT Account Id>:root"
+               },
+               "Action": "sts:AssumeRole",
+               "Condition": {}
+          }
+     ]
+     }
+     ```
 
 ## Running
 
