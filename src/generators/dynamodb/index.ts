@@ -27,7 +27,7 @@ class DynamoDbGenerator extends BaseGenerator {
     this._input('kms_key', { type: 'list', choices: listKmsKeys(this.destinationRoot(), false), default: NONE });
   }
 
-  async create() {
+  async generate() {
     const results = await this._prompt();
 
     this.fs.copyTpl(

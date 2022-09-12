@@ -7,7 +7,7 @@ class KmsBaseGenerator extends BaseGenerator {
     this._input('deletion_window_in_days', { type: 'number', default: 7 });
   }
 
-  async create() {
+  async generate() {
     const results = await this._prompt();
 
     this.fs.copyTpl(

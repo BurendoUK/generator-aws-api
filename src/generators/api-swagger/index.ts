@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { BaseGenerator, kebabCase, languageRuntime, languages, listLayers, listVpcs } from '../../common';
 
 const isYaml = (filename) => filename.endsWith('.yaml') || filename.endsWith('yml');
