@@ -8,7 +8,9 @@ class SecretsGenerator extends BaseGenerator {
     this._input('name', { type: 'input', validate: kebabCase });
     this._input('description', { type: 'input' });
     this._input('secret_string', { type: 'input' });
+    this._input('kms_key', { type: 'list', choices: listKmsKeys(this.destinationRoot(), false) });
     this._input('repeat', { type: 'confirm', message: 'Do you want to add another secret?' });
+
     
   }
 
@@ -28,9 +30,6 @@ class SecretsGenerator extends BaseGenerator {
             repeat = 'false'
         }
     }
-
-    console.log(answers)
-
 
     this.fs.copyTpl(
       this.templatePath('**/*.ejs'),

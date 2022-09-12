@@ -66,6 +66,21 @@ Product --< Deployment --< Module
    npm link
    ```
 
+## Getting Started
+
+The first step is to create the app, this will set up most of the barebones needed to deploy
+` yo aws-api:app ` 
+This will give you a list of options and letting you choose your management account and your code deployment account.
+
+At present there is no way to bootstrap the terraform, this step is manual until implemented and to do so you must do the following to get a successful deploy with the app we just created:
+
+1. Within the management account you need to create the following:
+     1. A dynamoDB table that matches the name of `dynamodb_table` you selected whilst making the app
+          1. This requires a partition key called LockID
+     2. An S3 bucket that matches the name of `bucket` you selected whilst making the app
+
+With these steps done you should not receive errors relating to storing the terraform state.
+
 ## Running
 
 ```
@@ -150,6 +165,14 @@ yo aws-api:<command>
 
         ```
         yo aws-api:kms
+        ```
+
+   4.  secrets
+
+        Create one or more AWS Secrets, the prompt will allow for multiple entries. If you wish to encrypt with a KMS key then ensure you set up those first.
+
+        ```
+        yo aws-api:secrets
         ```
 
 3.  Networking
