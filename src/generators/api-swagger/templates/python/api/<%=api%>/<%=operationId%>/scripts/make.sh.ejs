@@ -5,15 +5,14 @@ function _build() {
 }
 
 function _clean() {
-    echo "Cleaning $(dirname $(pwd))"
+    echo "Cleaning $(dirname "$(pwd)")"
     rm -rf ../dist
 }
 
 command=$1
-args=(${@:2})
 
 case $command in
-    "build") _build $args ;;
-    "clean") _clean $args ;;
+    "build") _build ;;
+    "clean") _clean ;;
     *) echo "Unhandled command ${command}" ;;
 esac
