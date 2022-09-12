@@ -71,9 +71,9 @@ class ApiSwaggerGenerator extends BaseGenerator {
       if (typeof o !== 'object') return o;
       return (
         Object.entries(o)
-          .map(([k, v]) => [k.replace(/_/g, ''), v])
-          //@ts-ignore
-          .reduce((s, [k, v]) => ({ ...s, [k]: normalise(v) }), {})
+            // Fixing typing on this method is a pain. Left to be any[] for now.
+          .map(([key, value]): any[] => [key.replace(/_/g, ''), value])
+          .reduce((s, [key, value]) => ({ ...s, [key]: normalise(value) }), {})
       );
     };
 
