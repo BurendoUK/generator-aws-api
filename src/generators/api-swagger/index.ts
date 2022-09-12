@@ -100,6 +100,9 @@ class ApiSwaggerGenerator extends BaseGenerator {
       };
     }
 
+    // Need to remove discriminator as AWS API gateway doesn't work with this block
+    delete json.components.schemas.Resource.discriminator;
+
     const replacer = (key: string, value: string) => {
       if (key === 'pattern') value = value.replace(/\\/g, '\\\\');
       if (key === '$ref') value = value.replace(/_/g, '');
