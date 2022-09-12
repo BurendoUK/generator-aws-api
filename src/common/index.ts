@@ -5,6 +5,14 @@ import { Question } from 'yeoman-generator';
 import { IGeneratorCliArgs, IGeneratorLanguages } from '../interfaces';
 import { ArgumentConfigType } from '../types';
 
+const PYTHON = 'python';
+const JAVASCRIPT = 'javascript';
+const TYPESCRIPT = 'typescript';
+
+const YES = 'yes';
+const NO = 'no';
+const BOOLEAN_CHOICES = [YES, NO];
+
 const NONE = '(none)';
 const isNone = (v) => v === NONE;
 const isNotNone = (v) => !isNone(v);
@@ -31,15 +39,15 @@ const toKebabCase = (s: string): string =>
     .join('-');
 
 const _languages: IGeneratorLanguages = {
-  python: {
+  [PYTHON]: {
     extension: 'py',
     runtime: 'python3.9'
   },
-  typescript: {
+  [TYPESCRIPT]: {
     extension: 'ts',
     runtime: 'nodejs14.x'
   },
-  javascript: {
+  [JAVASCRIPT]: {
     extension: 'js',
     runtime: 'nodejs14.x'
   }
@@ -223,5 +231,11 @@ export {
   toKebabCase,
   languages,
   languageRuntime,
-  languageIgnorePattern
+  languageIgnorePattern,
+  YES,
+  NO,
+  BOOLEAN_CHOICES,
+  PYTHON,
+  TYPESCRIPT,
+  JAVASCRIPT
 };

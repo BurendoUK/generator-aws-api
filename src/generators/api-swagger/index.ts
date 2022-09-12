@@ -71,7 +71,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
       if (typeof o !== 'object') return o;
       return (
         Object.entries(o)
-            // Fixing typing on this method is a pain. Left to be any[] for now.
+          // Fixing typing on this method is a pain. Left to be any[] for now.
           .map(([key, value]): any[] => [key.replace(/_/g, ''), value])
           .reduce((s, [key, value]) => ({ ...s, [key]: normalise(value) }), {})
       );
@@ -133,9 +133,15 @@ class ApiSwaggerGenerator extends BaseGenerator {
         vpc,
         layers
       };
-      this.fs.copyTpl(this.templatePath('each/**/*'), this.destinationRoot(), data, {}, { globOptions: { dot: true } });
       this.fs.copyTpl(
-        this.templatePath(`${language}/**/*`),
+        this.templatePath('each/**/*.ejs'),
+        this.destinationRoot(),
+        data,
+        {},
+        { globOptions: { dot: true } }
+      );
+      this.fs.copyTpl(
+        this.templatePath(`${language}/**/*.ejs`),
         this.destinationRoot(),
         data,
         {},
