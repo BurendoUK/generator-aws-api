@@ -58,7 +58,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
     });
   }
 
-  async create() {
+  async generate() {
     this._requireFile(
       path.join('terraform', 'lambda.tf'),
       'lambda base file not found. Please run: yo aws-api:lambda-base'
