@@ -1,12 +1,13 @@
 import * as fs from 'fs';
-import yaml from 'js-yaml';
-import { BaseGenerator, kebabCase, languageRuntime, languages, listLayers, listVpcs } from '../../common';
+import * as yaml from 'js-yaml';
+import { BaseGenerator, kebabCase, languageRuntime, languages, listLayers, listVpcs, NONE } from '../../common';
+import * as path from 'path';
 
-const isYaml = (filename) => filename.endsWith('.yaml') || filename.endsWith('yml');
+const isYaml = (filename: string) => filename.endsWith('.yaml') || filename.endsWith('yml');
 
-const validateFilename = (filename) => fs.existsSync(filename) || 'File does not exist';
+const validateFilename = (filename: string) => fs.existsSync(filename) || 'File does not exist';
 
-const apiEndPoints = (filename) => {
+const apiEndPoints = (filename: string) => {
   const raw = fs.readFileSync(filename, 'utf-8');
   const json = isYaml(filename) ? yaml.load(raw) : JSON.parse(raw);
   return Object.entries(json.paths)
@@ -25,6 +26,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
   constructor(args, opts) {
     super(args, opts);
 
+    this._input('region', { type: 'list', choices: ['eu-west-2'], store: true });
     this._input('name', {
       type: 'input',
       validate: kebabCase
@@ -46,7 +48,8 @@ class ApiSwaggerGenerator extends BaseGenerator {
     });
     this._input('vpc', {
       type: 'list',
-      choices: listVpcs(this.destinationRoot(), false)
+      choices: listVpcs(this.destinationRoot(), false),
+      default: NONE
     });
     this._input('layers', {
       type: 'checkbox',
@@ -55,26 +58,33 @@ class ApiSwaggerGenerator extends BaseGenerator {
     });
   }
 
-  async create_api_resource() {
-    let answers = await this._prompt();
-    const { name, filename, language, vpc, layers } = answers;
+  async create() {
+    this._requireFile(
+      path.join('terraform', 'lambda.tf'),
+      'lambda base file not found. Please run: yo aws-api:lambda-base'
+    );
+    const results = await this._prompt();
+    const { name, filename, language, vpc, layers } = results;
 
     const normalise = (o) => {
       if (Array.isArray(o)) return o.map((x) => normalise(x));
       if (typeof o !== 'object') return o;
-      return Object.entries(o)
-        .map(([k, v]) => [k.replace(/_/g, ''), v])
-          //@ts-ignore TODO: FIX IN TICKET
-        .reduce((s, [k, v]) => ({ ...s, [k]: normalise(v) }), {});
+      return (
+        Object.entries(o)
+            // Fixing typing on this method is a pain. Left to be any[] for now.
+          .map(([key, value]): any[] => [key.replace(/_/g, ''), value])
+          .reduce((s, [key, value]) => ({ ...s, [key]: normalise(value) }), {})
+      );
     };
 
     const raw = fs.readFileSync(filename, 'utf-8');
     const json = isYaml(filename) ? yaml.load(raw) : JSON.parse(raw);
     json.components = normalise(json.components);
 
-    const endpoints = answers.endpoints
-      .map((e) => e.split(' '))
+    const endpoints = results.endpoints
+      .map((e: string) => e.split(' '))
       .map(([method, path]) => [path, method, json.paths[path][method].operationId || buildOperationId(path, method)]);
+
     for (const [path, method, operationId] of endpoints) {
       json.paths[path][method]['x-amazon-apigateway-integration'] = {
         type: 'aws_proxy',
@@ -87,17 +97,19 @@ class ApiSwaggerGenerator extends BaseGenerator {
         },
         passthroughBehavior: 'when_no_match',
         contentHandling: 'CONVERT_TO_TEXT'
-        // credentials: '${credentials_x}',
       };
     }
 
-    const replacer = (key, value) => {
+    // Need to remove discriminator as AWS API gateway doesn't work with this block
+    delete json.components.schemas.Resource.discriminator;
+
+    const replacer = (key: string, value: string) => {
       if (key === 'pattern') value = value.replace(/\\/g, '\\\\');
       if (key === '$ref') value = value.replace(/_/g, '');
       return value;
     };
 
-    answers.raw = yaml.dump(json, {
+    results.raw = yaml.dump(json, {
       replacer
     });
 
@@ -106,7 +118,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
     this.fs.copyTpl(
       this.templatePath('all/**/*.ejs'),
       this.destinationRoot(),
-      { ...answers, operations },
+      { ...results, operations },
       {},
       { globOptions: { dot: true } }
     );
