@@ -62,8 +62,14 @@ resource "aws_api_gateway_method_settings" "<%=name%>" {
 
 resource "aws_cloudwatch_log_group" "<%=name%>__access_logs" {
     name       = "/aws/api-gateway/access-logs/${aws_api_gateway_rest_api.<%=name%>.name}"
+<% if (kms !== '(none)') { %>
+    kms_key_id = aws_kms_key.<%=kms%>.arn
+<% } %>
 }
 
 resource "aws_cloudwatch_log_group" "<%=name%>__execution_logs" {
     name       = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.<%=name%>.id}/production"
+<% if (kms !== '(none)') { %>
+    kms_key_id = aws_kms_key.<%=kms%>.arn
+<% } %>
 }

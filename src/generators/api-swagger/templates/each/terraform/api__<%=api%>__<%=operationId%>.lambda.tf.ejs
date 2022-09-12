@@ -53,11 +53,17 @@ resource "aws_lambda_function" "<%=fullname%>" {
         <%- layers.map(layer => `aws_lambda_layer_version.${layer}.arn`).join(',\n\t\t') %>
     ]
 <% } -%>
+    depends_on = [
+        aws_cloudwatch_log_group.<%=`${fullname}__lambda-log`%>
+    ]
 }
 
 resource "aws_cloudwatch_log_group" "<%=`${fullname}__lambda-log`%>" {
     name              = "/aws/lambda/${aws_lambda_function.<%=fullname%>.function_name}"
     retention_in_days = local.lambda_log_retention_in_days
+<% if (kms !== '(none)') { %>
+    kms_key_id = aws_kms_key.<%=kms%>.arn
+<% } %>
 }
 
 resource "aws_lambda_permission" "<%=`${fullname}__lambda-permission`%>" {
