@@ -6,11 +6,9 @@ class LayerGenerator extends BaseGenerator {
 
     this._input('name', { type: 'input', validate: kebabCase });
     this._input('language', { type: 'list', choices: languages(), default: 'javascript', store: true });
-    this._input('author', { type: 'input', store: true });
-    this._input('email', { type: 'input', store: true });
   }
 
-  async execute() {
+  async generate() {
     let answers = await this._prompt();
     answers['runtime'] = languageRuntime(answers['language']);
 
