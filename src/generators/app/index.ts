@@ -59,7 +59,7 @@ class AppGenerator extends BaseGenerator {
     });
   }
 
-  async create() {
+  async generate() {
     const results = await this._prompt();
 
     this.fs.copyTpl(

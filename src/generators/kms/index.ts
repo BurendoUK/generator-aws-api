@@ -9,7 +9,7 @@ class KmsKeyGenerator extends BaseGenerator {
     this._input('description', { type: 'input' });
   }
 
-  async create() {
+  async generate() {
     this._requireFile(path.join('terraform', 'kms.tf'), 'kms base file not found. Please run: yo aws-api:kms-base');
     const results = await this._prompt();
 

@@ -8,7 +8,7 @@ class LambdaBaseGenerator extends BaseGenerator {
     this._input('lambda_log_retention_in_days', { type: 'number', default: 30 });
   }
 
-  async create() {
+  async generate() {
     const results = await this._prompt();
 
     this.fs.copyTpl(
