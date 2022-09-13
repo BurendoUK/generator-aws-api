@@ -1,6 +1,15 @@
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { BaseGenerator, kebabCase, languageRuntime, languages, listLayers, listVpcs, NONE } from '../../common';
+import {
+  BaseGenerator,
+  kebabCase,
+  languageRuntime,
+  languages,
+  listKmsKeys,
+  listLayers,
+  listVpcs,
+  NONE
+} from '../../common';
 import * as path from 'path';
 
 const isYaml = (filename: string) => filename.endsWith('.yaml') || filename.endsWith('yml');
@@ -56,6 +65,11 @@ class ApiSwaggerGenerator extends BaseGenerator {
       choices: listLayers(this.destinationRoot()),
       default: listLayers(this.destinationRoot())
     });
+    this._input('kms', {
+      type: 'list',
+      choices: listKmsKeys(this.destinationRoot(), false),
+      default: NONE
+    });
   }
 
   async generate() {
@@ -64,7 +78,7 @@ class ApiSwaggerGenerator extends BaseGenerator {
       'lambda base file not found. Please run: yo aws-api:lambda-base'
     );
     const results = await this._prompt();
-    const { name, filename, language, vpc, layers } = results;
+    const { name, filename, language, vpc, layers, kms } = results;
 
     const normalise = (o) => {
       if (Array.isArray(o)) return o.map((x) => normalise(x));
@@ -131,7 +145,8 @@ class ApiSwaggerGenerator extends BaseGenerator {
         language,
         runtime: languageRuntime(language),
         vpc,
-        layers
+        layers,
+        kms
       };
       this.fs.copyTpl(
         this.templatePath('each/**/*.ejs'),

@@ -1,4 +1,68 @@
 resource "aws_kms_key" "<%=name%>" {
   description             = "<%=description%>"
-  deletion_window_in_days = locals.kms.deletion_window_in_days
+  deletion_window_in_days = local.kms.deletion_window_in_days
+<% if (is_cloudwatch === 'yes') { %>
+  policy = data.aws_iam_policy_document.<%=name%>.json
+<% } %>
 }
+
+resource "aws_kms_alias" "<%=name%>" {
+  name          = "alias/${local.prefix}--<%=name%>"
+  target_key_id = aws_kms_key.<%=name%>.key_id
+}
+
+<% if (is_cloudwatch === 'no') { %>
+resource "aws_iam_policy" "<%=name%>__kms-read-write" {
+  name = "${local.prefix}--<%=name%>--kms-read-write"
+  description = "Encrypt and decrypt with the <%=name%> kms key"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:Encrypt",
+          "kms:GenerateDataKey"
+        ]
+        Effect = "Allow"
+        Resource = [
+          aws_kms_key.<%=name%>.arn
+        ]
+      }
+    ]
+  })
+}
+<% } %>
+
+<% if (is_cloudwatch === 'yes') { %>
+data "aws_iam_policy_document" "<%=name%>" {
+  source_policy_documents = [
+    data.aws_iam_policy_document.kms_default_policy.json
+  ]
+  statement {
+    principals {
+      type = "Service"
+
+      identifiers = [
+        "logs.<%=region%>.amazonaws.com"
+      ]
+    }
+    actions = [
+      "kms:Encrypt*",
+      "kms:Decrypt*",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:Describe*"
+    ]
+    resources = [ "*" ]
+    condition {
+      test = "ArnLike"
+      variable = "kms:EncryptionContext:aws:logs:arn"
+      values = [
+        "arn:aws:logs:eu-west-2:${var.assume_account}:log-group:*"
+      ]
+    }
+  }
+}
+<% } %>
