@@ -17,7 +17,7 @@ def execute_handler(event, config: Config, **dependencies) -> tuple[int, any]:
             "2": v2_handler
         }
         version = get_version_from_header(event)
-        handler = get_handler(version, handler_versions, v2_handler)
+        handler = get_handler(version, handler_versions)
         return handler(event, config, **dependencies)
     except ValidationError as e:
         return 400, {"message": str(e)}
