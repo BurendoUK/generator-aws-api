@@ -1,0 +1,22 @@
+#!/bin/bash
+
+function _make_help() {
+    echo
+    echo "<%=project%> make <command> [options]"
+    echo
+    echo "commands:"
+    echo "  help          - this help screen"
+    echo "  install       - Setup local dependencies"
+}
+
+function _make() {
+    command=$1
+    case $command in
+        "install") _install ;;
+        *) _make_help ;;
+    esac
+}
+
+function _install() {
+    pipenv install --dev
+}

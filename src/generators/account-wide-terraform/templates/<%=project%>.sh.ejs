@@ -5,6 +5,7 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 
 source "$root/scripts/_aws.sh"
 source "$root/scripts/_terraform.sh"
+source "$root/scripts/_make.sh"
 
 function _show_help() {
     echo
@@ -18,6 +19,7 @@ function _show_help() {
     echo "commands:"
     echo "  help      - this help screen"
     echo "  aws       - aws commands"
+    echo "  make      - make commands"
     echo "  terraform - terraform commands"
     echo
 }

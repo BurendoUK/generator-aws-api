@@ -9,7 +9,6 @@ class AccountWideTerraform extends BaseGenerator {
         this._input('state_bucket', { type: 'input', default: 'terraform-state' });
         this._input('state_lock_table', { type: 'input', default: 'terraform-lock' });
         this._input('account_id', { type: 'input' });
-        this._input('account_cli_alias', { type: 'input', default: 'mgmt' });
         this._input('account_role_name', { type: 'input' });
         this._input('dev_account_id', {
             type: 'input',

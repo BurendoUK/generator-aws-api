@@ -22,54 +22,53 @@ function _terraform() {
   local plan_file
   env="$2"
   plan_file="./.${env}-tfplan"
+  terraform_dir="$root/terraform"
+  tfvar_file="./etc/$env.tfvars"
 
-  if [ "$env" != "$account_name" ]
-  then
-    echo "Terraform environment does not match logged in account. Env: $env Account: $account_name"
-  else
-    case $command in
-      "validate")
-      cd "$root/terraform/$env"
+  case $command in
+    "validate")
+      cd $terraform_dir
       terraform validate "${@:3}"
-      ;;
+    ;;
 
-      "fmt")
-      cd "$root/terraform/$env"
+    "fmt")
+      cd $terraform_dir
       terraform fmt "${@:3}"
-      ;;
+    ;;
 
-      "init")
-      cd "$root/terraform/$env"
+    "init")
+      cd $terraform_dir
       terraform init -upgrade
-      ;;
+    ;;
 
-      "plan")
-      cd "$root/terraform/$env"
-      terraform plan -out="$plan_file" "${@:3}"
-      ;;
+    "plan")
+      cd $terraform_dir
+      terraform workspace select "$env" || terraform workspace new "$env"
+      terraform plan -out="$plan_file" -var-file="$tfvar_file" "${@:3}"
+    ;;
 
-      "apply")
-      cd "$root/terraform/$env"
-      if [ ! -f "$plan_file" ]
-      then
+    "apply")
+      cd $terraform_dir
+      if [ ! -f "$plan_file" ]; then
         echo "Plan file not found, please run:  <%=project%> terraform plan <env>"
       else
+        terraform workspace select "$env" || terraform workspace new "$env"
         terraform apply "$plan_file"
         terraform output -json > output.json
       fi
-      ;;
+    ;;
 
-      "destroy")
-      cd "$root/terraform/$env"
+    "destroy")
+      cd $terraform_dir
+      terraform workspace select "$env" || terraform workspace new "$env"
       terraform destroy "${@:3}"
-      ;;
+    ;;
 
-      "relock")
-       cd "$root/terraform/$env"
+    "relock")
+       cd $terraform_dir
        terraform providers lock -platform=windows_amd64 -platform=darwin_amd64 -platform=linux_amd64
-      ;;
+    ;;
 
-      *) _terraform_help ;;
-    esac
-  fi
+    *) _terraform_help ;;
+  esac
 }
