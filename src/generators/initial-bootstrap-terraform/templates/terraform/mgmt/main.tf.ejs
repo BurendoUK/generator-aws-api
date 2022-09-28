@@ -1,0 +1,14 @@
+provider "aws" {
+  region            = "<%=region%>"
+}
+
+#terraform {
+#  backend "s3" {
+#    encrypt              = false
+#    region               = "eu-west-2"
+#    bucket               = "<%=state_bucket%>"
+#    dynamodb_table       = "<%=state_lock_table%>"
+#    key                  = "tf.state"
+#    workspace_key_prefix = "<%=project%>-init-bootstrap"
+#  }
+#}

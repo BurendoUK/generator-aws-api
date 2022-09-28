@@ -1,0 +1,161 @@
+# AWS Account initial setup
+
+This repo is used for the initial setup of aws account resources.
+
+## Resources created
+### mgmt
+
+- Terraform state bucket: <%=state_bucket%>
+- Terraform state lock table: <%=state_lock_table%>
+
+### dev
+
+- mgmt assume terraform role: <%=dev_terraform_role%>
+
+
+### test
+
+- mgmt assume terraform role: <%=test_terraform_role%>
+
+
+### prod
+
+- mgmt assume terraform role: <%=prod_terraform_role%>
+
+## Prerequisites
+
+- awscli or pipenv
+- terraform
+
+## Warning
+
+All terraform states will first be saved locally. Then moved to remote when all resources have been created. You MUST follow the steps in readme as they are.
+
+## Account setup steps
+
+### 1. Install dependencies
+If using pipenv, run at root of project
+```bash
+source <%=project%>.sh
+<%=project%> make install
+pipenv shell
+source <%=project%>.sh
+```
+
+If you already have awscli, run at root of project
+```bash
+source <%=project%>.sh
+```
+
+### 2. Create mgmt resources
+Run at root of project
+
+Login to mgmt (this may error on the first run)
+```bash
+<%=project%> aws login mgmt <mfa_token>
+```
+Create mgmt resources using local terraform state
+```bash
+<%=project%> terraform init mgmt
+<%=project%> terraform plan mgmt
+<%=project%> terraform apply mgmt
+```
+
+### 3. Create dev resources
+Run at root of project
+
+Login to dev (this may error on the first run)
+```bash
+<%=project%> aws login dev <mfa_token>
+```
+Create dev resources using local terraform state
+```bash
+<%=project%> terraform init dev
+<%=project%> terraform plan dev
+<%=project%> terraform apply dev
+```
+
+### 4. Create test resources
+Run at root of project
+
+Login to test (this may error on the first run)
+```bash
+<%=project%> aws login test <mfa_token>
+```
+Create test resources using local terraform state
+```bash
+<%=project%> terraform init test
+<%=project%> terraform plan test
+<%=project%> terraform apply test
+```
+
+### 5. Create prod resources
+Run at root of project
+
+Login to prod (this may error on the first run)
+```bash
+<%=project%> aws login prod <mfa_token>
+```
+Create prod resources using local terraform state
+```bash
+<%=project%> terraform init prod
+<%=project%> terraform plan prod
+<%=project%> terraform apply prod
+```
+
+
+### 6. Move terraform state to remote
+Uncomment and save following block in `terraform/mgmt/main.tf`
+```terraform
+#terraform {
+#  backend "s3" {
+#    encrypt              = false
+#    region               = "eu-west-2"
+#    bucket               = "<%=state_bucket%>"
+#    dynamodb_table       = "<%=state_lock_table%>"
+#    key                  = "tf.state"
+#    workspace_key_prefix = "<%=project%>-init-bootstrap"
+#  }
+#}
+```
+
+Uncomment and save following blocks in `terraform/regular-accounts/main.tf`
+```terraform
+#  assume_role {
+#    role_arn = "arn:aws:iam::${var.assume_account}:role/${var.assume_role}"
+#  }
+```
+AND
+```terraform
+#terraform {
+#  backend "s3" {
+#    encrypt              = false
+#    region               = "eu-west-2"
+#    bucket               = "<%=state_bucket%>"
+#    dynamodb_table       = "<%=state_lock_table%>"
+#    key                  = "tf.state"
+#    workspace_key_prefix = "<%=project%>-init-bootstrap"
+#  }
+#}
+```
+
+Run at root of project
+
+Login to mgmt (this may error on the first run)
+```bash
+<%=project%> aws login mgmt <mfa_token>
+```
+Move local terraform state to remote backend
+```bash
+<%=project%> terraform init mgmt
+<%=project%> terraform init dev
+<%=project%> terraform init test
+<%=project%> terraform init prod
+```
+
+Each init command will ask if you want to move terraform state to remote backend. confirm by typing `yes`
+
+### 7. Check state migration is successful
+Log on to aws console and assume mgmt account. There should be a `<%=state_bucket%>` bucket.
+
+The bucket should contain `<%=project%>-init-bootstrap` directory. Inside the directory there should be 4 directories: `dev`, `test`, `prod` and `mgmt`.
