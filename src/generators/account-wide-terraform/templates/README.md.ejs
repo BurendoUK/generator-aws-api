@@ -1,42 +1,33 @@
 # AWS Account wide resource setup
 
-This repo is used for the initial setup of account wide aws resources.
+This repo is used for creating account wide aws resources.
 
 ## Resources created
-### mgmt
-
-- Terraform state bucket: <%=state_bucket%>
-- Terraform state lock table: <%=state_lock_table%>
-
 ### dev
 
-- mgmt assume terraform role: <%=dev_terraform_role%>
 - API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
 
 
 ### test
 
-- mgmt assume terraform role: <%=test_terraform_role%>
 - API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
 
 
 ### prod
 
-- mgmt assume terraform role: <%=prod_terraform_role%>
 - API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
 
 
-## Warning
+## Prerequisites
 
-All terraform state are saved locally. If more account wide resources are required in the future. Ensure you have backed up your terraform state. Or create the resources manually if state is not available.
+- awscli or pipenv
+- terraform
 
 ## Applying terraform
 
 ```bash
 source <%=project%>.sh
-<%=project%> aws login <env>
+<%=project%> aws login mgmt
 <%=project%> terraform plan <env>
 <%=project%> terraform apply <env>
 ```
-
-If the logged in environment is not the same as the request terraform environment. Then script will not apply terraform.
