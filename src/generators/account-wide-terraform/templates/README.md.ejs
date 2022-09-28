@@ -3,26 +3,26 @@
 This repo is used for the initial setup of account wide aws resources.
 
 ## Resources created
-### <%=account_cli_alias%>
+### mgmt
 
 - Terraform state bucket: <%=state_bucket%>
 - Terraform state lock table: <%=state_lock_table%>
 
 ### dev
 
-- <%=account_cli_alias%> assume terraform role: <%=dev_terraform_role%>
+- mgmt assume terraform role: <%=dev_terraform_role%>
 - API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
 
 
 ### test
 
-- <%=account_cli_alias%> assume terraform role: <%=test_terraform_role%>
+- mgmt assume terraform role: <%=test_terraform_role%>
 - API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
 
 
 ### prod
 
-- <%=account_cli_alias%> assume terraform role: <%=prod_terraform_role%>
+- mgmt assume terraform role: <%=prod_terraform_role%>
 - API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
 
 
