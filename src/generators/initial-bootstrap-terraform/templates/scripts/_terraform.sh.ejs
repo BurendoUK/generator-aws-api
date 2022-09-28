@@ -39,10 +39,12 @@ function _terraform() {
     "init")
       cd $terraform_dir
       terraform init -upgrade
+      terraform workspace select "$env" || terraform workspace new "$env"
     ;;
 
     "plan")
       cd $terraform_dir
+      terraform workspace select "$env" || terraform workspace new "$env"
       if [ "$env" = "mgmt" ]; then
         terraform plan -out="$plan_file" "${@:3}"
       else
@@ -55,6 +57,7 @@ function _terraform() {
       if [ ! -f "$plan_file" ]; then
         echo "Plan file not found, please run:  <%=project%> terraform plan <env>"
       else
+        terraform workspace select "$env" || terraform workspace new "$env"
         terraform apply "$plan_file"
         terraform output -json > output.json
       fi
@@ -62,6 +65,7 @@ function _terraform() {
 
     "destroy")
       cd $terraform_dir
+      terraform workspace select "$env" || terraform workspace new "$env"
       terraform destroy "${@:3}"
     ;;
 
