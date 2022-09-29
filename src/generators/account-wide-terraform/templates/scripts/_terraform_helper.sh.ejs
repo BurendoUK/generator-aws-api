@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function _get_terraform_dir() {
+  echo "$project_root/terraform"
+}
+
+function _get_tfvar_file() {
+  local env=$1
+
+  echo "./etc/$env.tfvars"
+}
+
+function _get_terraform_env() {
+  local env=$1
+
+  echo "$env"
+}

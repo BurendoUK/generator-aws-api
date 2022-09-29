@@ -1,0 +1,32 @@
+{
+  "accounts": [
+    {
+      "id": "<%=mgmt_account_id%>",
+      "cli_alias": "mgmt",
+      "role_name": "<%=assume_mgmt_role%>",
+      "session_duration": 3600,
+      "prod": false
+    }<% if (dev_account_id) { -%>,
+    {
+      "id": "<%=dev_account_id%>",
+      "cli_alias": "dev",
+      "role_name": "<%=assume_dev_role%>",
+      "session_duration": 3600,
+      "prod": false
+    }<% } %><% if (test_account_id) { -%>,
+    {
+      "id": "<%=test_account_id%>",
+      "cli_alias": "test",
+      "role_name": "<%=assume_test_role%>",
+      "session_duration": 3600,
+      "prod": false
+    }<% } %><% if (prod_account_id) { -%>,
+    {
+      "id": "<%=prod_account_id%>",
+      "cli_alias": "prod",
+      "role_name": "<%=assume_prod_role%>",
+      "session_duration": 3600,
+      "prod": true
+    }<% } %>
+  ]
+}

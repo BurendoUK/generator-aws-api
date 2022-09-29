@@ -7,7 +7,7 @@ resource "aws_iam_role" "mgmt_assume_terraform" {
         Action    = "sts:AssumeRole"
         Effect    = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::<%=account_id%>:root"
+          AWS = "arn:aws:iam::<%=mgmt_account_id%>:root"
         }
       }
     ]

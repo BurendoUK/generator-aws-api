@@ -1,0 +1,26 @@
+#!/bin/bash
+
+function _<%=project%>_commands_help() {
+  echo
+  echo "<%=project%> <command> [options]"
+  echo
+  echo "commands:"
+  echo "  help      - this help screen"
+  echo "  make      - calls the make/build routines"
+  echo "  aws       - aws commands"
+  echo "  terraform - terraform commands"
+  echo "  test      - run tests"
+  echo
+}
+
+function _<%=project%>_commands() {
+  local command=$1
+
+  case $command in
+    "aws") _aws "${@:2}" ;;
+    "make") _make "${@:2}" ;;
+    "terraform") _terraform "${@:2}" ;;
+    "test") _test "${@:2}" ;;
+    *) _<%=project%>_commands_help ;;
+  esac
+}
