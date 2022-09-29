@@ -5,17 +5,17 @@ This repo is used for creating account wide aws resources.
 ## Resources created
 ### dev
 
-- API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
+- API gateway to cloudwatch log account level role: <%=project%>--dev--gobal--api-gateway-cloudwatch-logs
 
 
 ### test
 
-- API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
+- API gateway to cloudwatch log account level role: <%=project%>--test--gobal--api-gateway-cloudwatch-logs
 
 
 ### prod
 
-- API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
+- API gateway to cloudwatch log account level role: <%=project%>--prod--gobal--api-gateway-cloudwatch-logs
 
 
 ## Prerequisites
@@ -23,6 +23,20 @@ This repo is used for creating account wide aws resources.
 - awscli or pipenv
 - terraform
 - jq
+
+## Install dependencies
+If using pipenv, run at root of project
+```bash
+source <%=project%>.sh
+<%=project%> make install
+pipenv shell
+source <%=project%>.sh
+```
+
+If you already have awscli, run at root of project
+```bash
+source <%=project%>.sh
+```
 
 ## Applying terraform
 
