@@ -7,7 +7,8 @@
     "build": "npm run clean && tsc -b && npm run copy:files",
     "copy:files": "copyfiles -au 1 ./src/**/*.ejs ./dist/ && copyfiles package.json ./dist/",
     "generator:local": "ts-node node_modules/.bin/yo",
-    "link": "pushd dist && npm link && popd"
+    "link": "pushd dist && npm link && popd",
+    "publish": "npm run build && npm run link"
   },
   "files": [
     "generators"

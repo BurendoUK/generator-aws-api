@@ -1,0 +1,21 @@
+#!/bin/bash
+
+export PIPENV_VENV_IN_PROJECT=1
+project_root=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
+
+for script_file in "$project_root"/scripts/*.sh; do
+  source $script_file
+done
+
+function <%=project%>() {
+  local current
+  current=$(pwd)
+
+  cd $project_root
+
+  _<%=project%>_commands "${@}"
+
+  cd $current
+}
+
+echo "Usage: <%=project%>"

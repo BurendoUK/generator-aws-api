@@ -1,0 +1,26 @@
+#!/bin/bash
+
+function _<%=project%>_commands_help() {
+  echo
+  echo "<%=project%> <command> [options]"
+  echo
+  echo "This helper script is used to setup initial AWS account bootstrap"
+  echo
+  echo "commands:"
+  echo "  help      - this help screen"
+  echo "  aws       - aws commands"
+  echo "  make      - make commands"
+  echo "  terraform - terraform commands"
+  echo
+}
+
+function _<%=project%>_commands() {
+  local command=$1
+
+  case $command in
+    "aws") _aws "${@:2}" ;;
+    "make") _make "${@:2}" ;;
+    "terraform") _terraform "${@:2}" ;;
+    *) _<%=project%>_commands_help ;;
+  esac
+}

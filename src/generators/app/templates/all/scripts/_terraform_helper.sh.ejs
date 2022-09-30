@@ -1,0 +1,32 @@
+#!/bin/bash
+
+function _get_terraform_dir() {
+  echo "$project_root/terraform"
+}
+
+function _get_tfvar_file() {
+  local env=$1
+  local vars_prefix="dev"
+
+  if [ "$env" = "prod" ]; then
+      vars_prefix="prod"
+  elif [ "$env" = "ref" ]; then
+      vars_prefix="test"
+  fi
+
+  echo "./etc/$vars_prefix.tfvars"
+}
+
+function _get_terraform_env() {
+  local env=$1
+
+  if [[ -z $env ]]; then
+    if [[ -z $TERRAFORM_LOCAL_WORKSPACE_OVERRIDE ]]; then
+        echo "$(whoami | openssl dgst -sha1 -binary | xxd -p | cut -c1-8)"
+    else
+        echo "$TERRAFORM_LOCAL_WORKSPACE_OVERRIDE"
+    fi
+  else
+    echo "$env"
+  fi
+}

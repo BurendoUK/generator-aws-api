@@ -1,0 +1,84 @@
+#!/bin/bash
+
+function _terraform_help() {
+  echo
+  echo "<%=project%> terraform <command> [options]"
+  echo
+  echo "commands:"
+  echo "  help             - this help screen"
+  echo "  validate <env>   - runs 'terraform validate'"
+  echo "  fmt <env>        - runs 'terraform fmt'"
+  echo "  init <env>       - runs 'terraform init'"
+  echo "  plan <env>       - runs 'terraform plan'"
+  echo "  apply <env>      - runs 'terraform apply'"
+  echo "  destroy <env>    - runs 'terraform destroy'"
+  echo "  relock <env>     - relock terraform cache hashes for all platforms"
+  echo
+}
+
+function _terraform() {
+  local command=$1
+  local env
+  local plan_file
+  env=$(_get_terraform_env "$2")
+  plan_file="./.${env}-tfplan"
+  terraform_dir=$(_get_terraform_dir "$env")
+  tfvar_file=$(_get_tfvar_file "$env")
+
+  case $command in
+  "validate")
+    cd $terraform_dir
+    terraform validate "${@:3}"
+  ;;
+
+  "fmt")
+    cd $terraform_dir
+    terraform fmt "${@:3}"
+  ;;
+
+  "init")
+    cd $terraform_dir
+    terraform init -upgrade
+  ;;
+
+  "plan")
+    cd $terraform_dir
+    _select_tf_workspace "$env"
+    terraform plan -out="$plan_file" -var-file="$tfvar_file" "${@:3}"
+  ;;
+
+  "apply")
+    cd $terraform_dir
+    if [ ! -f "$plan_file" ]; then
+      echo "Plan file not found, please run:  <%=project%> terraform plan <env>"
+    else
+      _select_tf_workspace "$env"
+      terraform apply "$plan_file"
+      terraform output -json > output.json
+    fi
+  ;;
+
+  "destroy")
+    cd $terraform_dir
+    _select_tf_workspace "$env"
+    terraform destroy -var-file="$tfvar_file" "${@:3}"
+    if [ "$env" != "default" ]; then
+      terraform workspace select default
+      terraform workspace delete "$env"
+    fi
+  ;;
+
+  "relock")
+    cd $terraform_dir
+    terraform providers lock -platform=windows_amd64 -platform=darwin_amd64 -platform=linux_amd64
+  ;;
+
+  *) _terraform_help ;;
+  esac
+}
+
+function _select_tf_workspace() {
+  local env=$1
+
+  terraform workspace select "$env" || terraform workspace new "$env"
+}
