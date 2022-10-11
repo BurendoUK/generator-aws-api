@@ -1,0 +1,97 @@
+# <%=project%>
+
+# Overview
+This project uses the <%=project%>.sh script to build, test and deploy. This script will ensure that a developer can reproduce any operation that the CI/CD pipelines does, meaning they can test the application locally or on their own deployed dev environment.
+
+The deployment cycle looks like this.
+
+install -> unit test -> build -> deploy -> integration test -> tear down
+
+This project uses the following cycle during development, which promotes a "fail fast" methodology by moving unit tests to the front of the process ahead of expensive and slow build/deploy/teardown routines.
+
+# System Requirements
+
+- terraform v1.0.0 or tfenv
+- aws-cli
+- jq<% if (language === "python") { %>
+- python v3.9 or pyenv<% } %><% if (language === "javascript") { %>
+- node.js v16 or nvm<% } %>
+
+# Install Dependencies
+
+The first thing you will need to do is install the project dependencies, needed to make the project run.
+
+```bash
+source <%=project%>.sh
+<%=project%> make install
+```
+
+# Build, Test & Run the API
+
+Now we have installed the dependencies we're going to need to get the software up and running.
+
+## Setup the environment
+
+```bash<% if (language === "python") { %>
+pipenv shell<% } %>
+source <%=project%>.sh
+```
+
+## Run the Unit Tests
+
+This project adopts the "fail fast" methodology, which means that Unit Tests can be run before any expensive operations, such as a complete build or terraform deployment.
+
+```bash
+<%=project%> test unit
+```
+
+## Build the API
+
+Now build the artifacts that will be used to deploy the application.
+
+```bash
+<%=project%> make build
+```
+
+## Login to AWS
+
+In order to run deployment scripts you will need to be able to login to the AWS account using MFA.
+
+```bash
+<%=project%> aws login mgmt <mfa code>
+```
+
+## Deployment to AWS
+
+Deployment is handled using terraform, and can be deployed to any number of environments, such as, but not limited to `dev`, `test`, `prod`.
+
+If you do not supply an `<env>` then a hashed key unique to your environment will be generated.
+
+```bash
+<%=project%> terraform plan [<env>]
+```
+```bash
+<%=project%> terraform apply [<env>]
+```
+
+## Run the Integration Tests
+
+Once the environment has been deployed the integration tests can be run.
+
+```bash
+<%=project%> test integration
+```
+
+## Run the Feature Tests
+```bash
+<%=project%> test feature
+```
+
+## Tear down
+
+Using the same `<env>` from the deployment stage you can tear down the environment you created.
+
+If you do not supply an `<env>` then your hashed key unique to your environment will be used.
+```
+<%=project%> terraform destroy [<env>]
+```

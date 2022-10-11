@@ -1,29 +1,85 @@
-# Burendo API Scaffolder
+# Burendo AWS Scaffolder (BAS)
 
-This is an OpenSource project that generates APIs using Terraform and AWS.
+Goal: "Reduce Lead Time and Improve Quality of Value Enabling tasks in an Un-opinionated manner."
 
-This project is still very much a Work In Progress.
+That's a lot of buzz-words, so what on earth does it mean?
+
+You can explore the definitions in the [Terminology](#terminology) section below, but the fundamentals are 
+that we are looking to automate certain tasks in order to eliminate the time we waste doing repetitive
+tasks in inconsistent ways.  We aim to do this in a way that doesn't force developers onto rails and takes
+decisions out of their hands.
+
+## Terminology
+
+| Term                   | Description                                                                                                                                    |
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| Value Add (VA)         | Activities that directly relate to the objectives of the customer. (e.g. Selling a product)                                                    |
+| Non-Value Add (NVA)    | Activities that distract or inhibit Value-Add activities, such as Bugs, Meetings, Inconsistency, Repetition                                    |
+| Value Enabling (VE)    | Activities that the customer would consider NVA , but must be completed regardless (e.g. Creating a Database table)                            |
+| Reduce Lead Time (RLT) | Time saving activities that mean the task is completed quicker.                                                                                |
+| Improve Quality (IQ)   | Activities that reduce the waste associated with failure and inconsistency.                                                                    |
+| Product                | The BAS is used to generate a single customer product, and is composed of many deployments.                                                    |
+| Deployment             | A single deployments may reflect the run-time executables (API, website, ETL) or Design-Time executables (e.g. CI/CD, terraform bootstrap)     |
+| Module                 | A single feature within a deployment, such as an API, DynamoDB table, ECR, Lambda, etc.  A Module must be associated with a Deployment         |
+
+```
+Product --< Deployment --< Module
+```
 
 ## Requirements
 
-* nodejs
-* npm
-* yeoman
+* [nodejs](https://nodejs.org/) (preferably using [nvm](https://github.com/nvm-sh/nvm))
+* [npm](https://npmjs.org)
+* [yeoman]([yeoman](https://yeoman.io/))
 
 ## Installation
 
 1. Install Yeoman
-2. Clone this repository
-3. NPM link this repository
 
-```
-npm install yo --global
-git clone git@github.com:BurendoUK/generator-aws-api.git
-cd generator-aws-api.git
-npm install
-npm run build
-npm run link
-```
+   The Yeoman scaffolder is an open source project that allows us to
+   create entire projects with minimum effort.
+
+    ```
+    npm install yo --global
+    ```
+
+1. Clone this repository
+
+   At present we share the generator by cloning the repository.  In future
+   this will be published to `npmjs.org` like other packages.
+
+   ```
+   git clone git@github.com:BurendoUK/generator-aws-api.git
+   ```
+
+
+1. Build and Link
+
+   The Generator is written in TypeScript, and therefore needs to be built
+   before it can be used.  Once built we then `npm link` it so that yeoman
+   can make use of it.
+
+   ```
+   cd generator-aws-api.git
+   npm install
+   npm run build
+   npm link
+   ```
+
+## Getting Started
+
+The first step is to create the app, this will set up most of the barebones needed to deploy
+` yo aws-api:app ` 
+This will give you a list of options and letting you choose your management account and your code deployment account.
+
+At present there is no way to bootstrap the terraform, this step is manual until implemented and to do so you must do the following to get a successful deploy with the app we just created:
+
+1. Within the management account you need to create the following:
+     1. A dynamoDB table that matches the name of `dynamodb_table` you selected whilst making the app
+          1. This requires a partition key called LockID
+     2. An S3 bucket that matches the name of `bucket` you selected whilst making the app
+
+With these steps done you should not receive errors relating to storing the terraform state.
 
 ## Running
 
@@ -109,6 +165,14 @@ yo aws-api:<command>
 
         ```
         yo aws-api:kms
+        ```
+
+   4.  secrets
+
+        Create one or more AWS Secrets, the prompt will allow for multiple entries. If you wish to encrypt with a KMS key then ensure you set up those first.
+
+        ```
+        yo aws-api:secrets
         ```
 
 3.  Networking

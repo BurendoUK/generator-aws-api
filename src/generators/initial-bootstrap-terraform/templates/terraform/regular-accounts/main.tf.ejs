@@ -1,0 +1,17 @@
+provider "aws" {
+  region            = "<%=region%>"
+#  assume_role {
+#    role_arn = "arn:aws:iam::${var.assume_account}:role/${var.assume_role}"
+#  }
+}
+
+#terraform {
+#  backend "s3" {
+#    encrypt              = false
+#    region               = "<%=region%>"
+#    bucket               = "<%=state_bucket%>"
+#    dynamodb_table       = "<%=state_lock_table%>"
+#    key                  = "tf.state"
+#    workspace_key_prefix = "<%=project%>-init-bootstrap"
+#  }
+#}

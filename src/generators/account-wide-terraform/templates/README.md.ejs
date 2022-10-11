@@ -1,42 +1,49 @@
 # AWS Account wide resource setup
 
-This repo is used for the initial setup of account wide aws resources.
+This repo is used for creating account wide aws resources.
 
 ## Resources created
-### <%=account_cli_alias%>
-
-- Terraform state bucket: <%=state_bucket%>
-- Terraform state lock table: <%=state_lock_table%>
-
 ### dev
 
-- <%=account_cli_alias%> assume terraform role: <%=dev_terraform_role%>
-- API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
+- API gateway to cloudwatch log account level role: <%=project%>--dev--gobal--api-gateway-cloudwatch-logs
 
 
 ### test
 
-- <%=account_cli_alias%> assume terraform role: <%=test_terraform_role%>
-- API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
+- API gateway to cloudwatch log account level role: <%=project%>--test--gobal--api-gateway-cloudwatch-logs
 
 
 ### prod
 
-- <%=account_cli_alias%> assume terraform role: <%=prod_terraform_role%>
-- API gateway to cloudwatch log account level role: api-gateway-cloudwatch-logs
+- API gateway to cloudwatch log account level role: <%=project%>--prod--gobal--api-gateway-cloudwatch-logs
 
 
-## Warning
+## Prerequisites
 
-All terraform state are saved locally. If more account wide resources are required in the future. Ensure you have backed up your terraform state. Or create the resources manually if state is not available.
+- awscli or pipenv
+- terraform
+- jq
+
+## Install dependencies
+If using pipenv, run at root of project
+```bash
+source <%=project%>.sh
+<%=project%> make install
+pipenv shell
+source <%=project%>.sh
+```
+
+If you already have awscli, run at root of project
+```bash
+source <%=project%>.sh
+```
 
 ## Applying terraform
 
 ```bash
 source <%=project%>.sh
-<%=project%> aws login <env>
+<%=project%> aws login mgmt
+<%=project%> terraform init
 <%=project%> terraform plan <env>
 <%=project%> terraform apply <env>
 ```
-
-If the logged in environment is not the same as the request terraform environment. Then script will not apply terraform.

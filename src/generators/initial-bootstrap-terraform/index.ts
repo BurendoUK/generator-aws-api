@@ -1,11 +1,10 @@
-import { BaseGenerator, languages, shortCode } from '../../common';
+import { BaseGenerator, shortCode } from '../../common';
 
-class AppGenerator extends BaseGenerator {
+class InitialBootstrapTerraform extends BaseGenerator {
   constructor(args, opts) {
     super(args, opts);
 
     this._input('project', { type: 'input', validate: shortCode, store: true });
-    this._input('language', { type: 'list', choices: languages, store: true });
     this._input('region', { type: 'list', choices: ['eu-west-2'], store: true });
     this._input('state_bucket', { type: 'input', default: 'terraform-state' });
     this._input('state_lock_table', { type: 'input', default: 'terraform-lock' });
@@ -61,22 +60,8 @@ class AppGenerator extends BaseGenerator {
   async generate() {
     const results = await this._prompt();
 
-    this.fs.copyTpl(
-      this.templatePath('all/**/*.ejs'),
-      this.destinationRoot(),
-      results,
-      {},
-      { globOptions: { dot: true } }
-    );
-
-    this.fs.copyTpl(
-      this.templatePath(`${results.language}/**/*.ejs`),
-      this.destinationRoot(),
-      results,
-      {},
-      { globOptions: { dot: true } }
-    );
+    this.fs.copyTpl(this.templatePath('**/*.ejs'), this.destinationRoot(), results, {}, { globOptions: { dot: true } });
   }
 }
 
-module.exports = AppGenerator;
+module.exports = InitialBootstrapTerraform;
